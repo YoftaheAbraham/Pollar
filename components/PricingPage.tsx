@@ -25,8 +25,8 @@ const PricingPage = () => {
         {
             name: 'Pro',
             description: 'For content creators and professionals',
-            monthlyPrice: 5,
-            annualPrice: 4,
+            monthlyPrice: 7,
+            annualPrice: 5,
             features: [
                 '20 active polls',
                 'Advanced analytics',
@@ -91,7 +91,7 @@ const PricingPage = () => {
                             key={tier.name}
                             onMouseEnter={() => setHoveredTier(tier.name)}
                             onMouseLeave={() => setHoveredTier(null)}
-                            className={`relative border rounded-xl overflow-hidden transition-all duration-300 ${tier.popular ? 'border-white/30' : 'border-white/10'} ${hoveredTier === tier.name ? 'transform scale-[1.02] shadow-lg' : ''}`}
+                            className={`relative flex flex-col border rounded-xl overflow-hidden transition-all duration-300 ${tier.popular ? 'border-white/30' : 'border-white/10'} ${hoveredTier === tier.name ? 'transform scale-[1.02] shadow-lg' : ''}`}
                         >
                             {tier.popular && (
                                 <div className="absolute top-0 right-0 bg-white text-black px-4 py-1 text-xs font-bold rounded-bl-lg">
@@ -99,7 +99,7 @@ const PricingPage = () => {
                                 </div>
                             )}
 
-                            <div className="p-8 flex flex-col justify-between">
+                            <div className="p-8 flex-1">
                                 <h2 className="text-2xl font-bold mb-2">{tier.name}</h2>
                                 <p className="text-white/60 mb-6">{tier.description}</p>
 
@@ -125,7 +125,9 @@ const PricingPage = () => {
                                         </li>
                                     ))}
                                 </ul>
+                            </div>
 
+                            <div className="p-8 pt-0">
                                 <button
                                     className={`w-full py-3 rounded-md font-medium transition-colors ${tier.popular ? 'bg-white text-black hover:bg-white/90' : 'bg-white/10 hover:bg-white/20'}`}
                                 >
@@ -153,7 +155,7 @@ const PricingPage = () => {
                             },
                             {
                                 question: "Is there a limit on poll responses?",
-                                answer: "Each tier has different limits. Free tier allows 100 votes per poll, Pro allows 1,000, and Enterprise allows 10,000."
+                                answer: "Each tier has different limits. Free tier allows 200 votes per poll, Pro allows 2,000, and Enterprise allows 20,000."
                             }
                         ].map((item, index) => (
                             <div key={index} className="border-b border-white/10 pb-4">
@@ -169,20 +171,6 @@ const PricingPage = () => {
                     </div>
                 </div>
             </main>
-
-            {/* Footer CTA */}
-            <div className="bg-white/5 border-t border-white/10 mt-16 py-16">
-                <div className="container mx-auto px-4 text-center">
-                    <h2 className="text-3xl font-bold mb-4">Ready to engage your audience?</h2>
-                    <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
-                        Start creating powerful polls today with Pollar's real-time analytics.
-                    </p>
-                    <button className="px-8 py-3 bg-white text-black rounded-lg text-lg font-medium hover:bg-white/90 transition">
-                        Get Started - It's Free
-                    </button>
-                </div>
-            </div>
-            
         </div>
     )
 }

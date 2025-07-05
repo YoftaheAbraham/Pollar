@@ -23,12 +23,12 @@ const Navbar = () => {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex ml-10 space-x-6">
-              {/* <Link 
+              <Link 
                 href="/discover" 
                 className="text-sm font-medium text-white/80 hover:text-white transition-colors px-3 py-2"
               >
-                Discover
-              </Link> */}
+                Dashboard
+              </Link>
               <Link 
                 href="/features" 
                 className="text-sm font-medium text-white/80 hover:text-white transition-colors px-3 py-2"
@@ -40,12 +40,6 @@ const Navbar = () => {
                 className="text-sm font-medium text-white/80 hover:text-white transition-colors px-3 py-2"
               >
                 Pricing
-              </Link>
-              <Link 
-                href="/about" 
-                className="text-sm font-medium text-white/80 hover:text-white transition-colors px-3 py-2"
-              >
-                About
               </Link>
             </div>
           </div>

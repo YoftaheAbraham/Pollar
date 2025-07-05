@@ -34,7 +34,6 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Hero Section */}
       <section className="relative overflow-hidden border-b border-white/10">
         <div className="container mx-auto px-4 py-32">
           <div className="max-w-4xl mx-auto text-center">
@@ -57,7 +56,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Trust Badges */}
       <div className="bg-black py-8 border-b border-white/10">
         <div className="container mx-auto px-4">
           <p className="text-center text-white/60 mb-6">TRUSTED BY INDUSTRY LEADERS</p>
@@ -91,7 +89,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Analytics Demo */}
       <section className="py-20 bg-black border-b border-white/10">
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row items-center gap-12">
@@ -136,7 +133,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-20 text-white">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold mb-6">Ready to Transform Your Feedback Process?</h2>
