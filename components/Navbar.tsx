@@ -35,12 +35,12 @@ const Navbar = () => {
               >
                 Features
               </Link>
-              {/* <Link 
+              <Link 
                 href="/pricing" 
                 className="text-sm font-medium text-white/80 hover:text-white transition-colors px-3 py-2"
               >
                 Pricing
-              </Link> */}
+              </Link>
               <Link 
                 href="/about" 
                 className="text-sm font-medium text-white/80 hover:text-white transition-colors px-3 py-2"
