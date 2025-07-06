@@ -14,9 +14,10 @@ model User {
   email         String         @unique
   name          String?
   password      String         @db.VarChar(255)
+  avatar_url    String   
+  providers     Provider[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
-  providers     Provider[]
   @@map("users")
 }
 

@@ -24,10 +24,10 @@ const Navbar = () => {
             {/* Desktop Navigation */}
             <div className="hidden md:flex ml-10 space-x-6">
               <Link 
-                href="/discover" 
+                href="/dashboard" 
                 className="text-sm font-medium text-white/80 hover:text-white transition-colors px-3 py-2"
               >
-                Dashboard
+                Tickets
               </Link>
               <Link 
                 href="/features" 
@@ -78,11 +78,11 @@ const Navbar = () => {
         <div className="md:hidden bg-black/95 border-t border-white/10">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             <Link 
-              href="/discover" 
+              href="/dashboard" 
               className="block px-3 py-2 text-base font-medium text-white/80 hover:text-white hover:bg-white/10 rounded-md"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Discover
+              Dashboard
             </Link>
             <Link 
               href="/features" 
