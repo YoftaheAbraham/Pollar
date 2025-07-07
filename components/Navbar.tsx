@@ -54,7 +54,6 @@ const Navbar = () => {
     await signOut({ callbackUrl: '/' })
   }
 
-  // Don't render anything until we know the auth state
   if (!mounted) {
     return (
       <nav className="fixed w-full backdrop-blur-2xl theme border-b border-white/10 z-50">
@@ -77,8 +76,6 @@ const Navbar = () => {
                 LIVE
               </span>
             </Link>
-
-            {/* Desktop Navigation */}
             <div className="hidden md:flex ml-10 space-x-1">
               {navLinks.map((link) => (
                 <Link
@@ -109,7 +106,7 @@ const Navbar = () => {
                     {session?.user?.image ? (
                       <img
                         src={session.user.image}
-                        alt="Profile"
+                        alt={`${session?.user?.name?.charAt(0).toUpperCase()}`}
                         width={40}
                         height={40}
                         className="object-cover w-full h-full"

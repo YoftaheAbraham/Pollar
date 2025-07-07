@@ -26,7 +26,11 @@ body {
 }
 
 .theme {
-  background: #070707;
+  background: #0e0e0e;
+}
+
+.theme-lighter {
+  background-color: #0e0e0e;
 }
 
 .theme-darker {
