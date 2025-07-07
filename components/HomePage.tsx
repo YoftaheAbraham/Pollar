@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import React from 'react'
+import BgAnimation from './BoardingUI'
 
 const HomePage = () => {
   const features = [
@@ -34,28 +35,9 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <section className="relative overflow-hidden border-b border-white/10">
-        <div className="container mx-auto px-4 py-32">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              Data-Driven Decisions
-              <br />Made Simple
-            </h1>
-            <p className="text-xl md:text-2xl text-white/80 mb-10 max-w-3xl mx-auto">
-              Professional polling infrastructure for enterprises and teams that demand accuracy.
-            </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Link href="/create-poll" className="px-8 py-4 bg-white text-black hover:bg-white/90 rounded-lg text-lg font-semibold transition duration-300">
-                Start Free Trial
-              </Link>
-              <Link href="/demo" className="px-8 py-4 border border-white text-white hover:bg-white/10 rounded-lg text-lg font-semibold transition duration-300">
-                Request Demo
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      <BgAnimation />
 
+      {/* Rest of your existing content remains exactly the same */}
       <div className="bg-black py-8 border-b border-white/10">
         <div className="container mx-auto px-4">
           <p className="text-center text-white/60 mb-6">TRUSTED BY INDUSTRY LEADERS</p>
@@ -68,7 +50,7 @@ const HomePage = () => {
       </div>
 
       {/* Value Proposition */}
-      <section className="py-20 bg-black border-b border-white/10">
+      <section className="py-20 border-b border-white/10">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center mb-16">
             <h2 className="text-4xl font-bold mb-6">Why Professionals Choose Pollar</h2>
@@ -120,7 +102,7 @@ const HomePage = () => {
             </div>
             <div className="lg:w-1/2 bg-black p-6 rounded-xl border border-white/10">
               {/* Placeholder for analytics chart */}
-              <div className="aspect-video bg-white/5 rounded-lg flex items-center justify-center border border-white/10">
+              <div className="aspect-video bg-white/5 rounded-sm flex items-center justify-center border border-white/10">
                 <div className="text-center p-8">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-white mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />

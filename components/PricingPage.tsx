@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react'
-import Link from 'next/link'
+
 
 const PricingPage = () => {
     const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual')
@@ -91,26 +91,31 @@ const PricingPage = () => {
                             key={tier.name}
                             onMouseEnter={() => setHoveredTier(tier.name)}
                             onMouseLeave={() => setHoveredTier(null)}
-                            className={`relative flex flex-col border rounded-xl overflow-hidden transition-all duration-300 ${tier.popular ? 'border-white/30' : 'border-white/10'} ${hoveredTier === tier.name ? 'transform scale-[1.02] shadow-lg' : ''}`}
+                            className={`relative flex flex-col border rounded-xl overflow-hidden transition-all duration-300 bg-gradient-to-b ${tier.popular ? 'from-green-900/20 to-black border-yellow-400/30' : 'from-black to-black border-white/10'} ${hoveredTier === tier.name ? 'transform scale-[1.02] shadow-xl' : ''}`}
                         >
                             {tier.popular && (
-                                <div className="absolute top-0 right-0 bg-white text-black px-4 py-1 text-xs font-bold rounded-bl-lg">
+                                <div className="absolute top-0 right-0 bg-gradient-to-r from-yellow-500 to-green-600 text-black px-4 py-1 text-xs font-bold rounded-bl-lg shadow-md">
                                     MOST POPULAR
                                 </div>
                             )}
 
                             <div className="p-8 flex-1">
-                                <h2 className="text-2xl font-bold mb-2">{tier.name}</h2>
-                                <p className="text-white/60 mb-6">{tier.description}</p>
+                                <h2 className={`text-2xl font-bold mb-2 ${tier.popular ? 'text-yellow-400' : 'text-white'}`}>
+                                    {tier.name}
+                                    {tier.popular && (
+                                        <span className="ml-2 text-yellow-200/70 text-sm">🔥 Best value</span>
+                                    )}
+                                </h2>
+                                <p className="text-white/70 mb-6">{tier.description}</p>
 
                                 <div className="mb-8">
-                                    <span className="text-4xl font-bold">
+                                    <span className={`text-4xl font-bold ${tier.popular ? 'text-yellow-400' : 'text-white'}`}>
                                         ${billingCycle === 'annual' ? tier.annualPrice : tier.monthlyPrice}
                                     </span>
                                     <span className="text-white/60">/{billingCycle === 'annual' ? 'mo' : 'mo'}</span>
                                     {billingCycle === 'annual' && tier.annualPrice > 0 && (
-                                        <div className="text-sm text-white/60 mt-1">
-                                            Billed annually (${tier.annualPrice * 12})
+                                        <div className="text-sm text-green-400/80 mt-1">
+                                            Save ${(tier.monthlyPrice * 12) - (tier.annualPrice * 12)} annually
                                         </div>
                                     )}
                                 </div>
@@ -118,10 +123,10 @@ const PricingPage = () => {
                                 <ul className="space-y-3 mb-8">
                                     {tier.features.map((feature, index) => (
                                         <li key={index} className="flex items-start">
-                                            <svg className="h-5 w-5 text-white mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <svg className={`h-5 w-5 ${tier.popular ? 'text-green-400' : 'text-yellow-500'} mr-2 mt-0.5 flex-shrink-0`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                             </svg>
-                                            <span>{feature}</span>
+                                            <span className={tier.popular ? 'text-white' : 'text-white/80'}>{feature}</span>
                                         </li>
                                     ))}
                                 </ul>
@@ -129,10 +134,13 @@ const PricingPage = () => {
 
                             <div className="p-8 pt-0">
                                 <button
-                                    className={`w-full py-3 rounded-md font-medium transition-colors ${tier.popular ? 'bg-white text-black hover:bg-white/90' : 'bg-white/10 hover:bg-white/20'}`}
+                                    className={`w-full py-3 rounded-md font-medium transition-colors ${tier.popular
+                                        ? 'bg-gradient-to-r from-yellow-500 to-green-600 text-black hover:from-yellow-400 hover:to-green-500 shadow-lg'
+                                        : 'bg-white/10 hover:bg-white/20 border border-white/10'}`}
                                 >
                                     {tier.cta}
                                 </button>
+                                
                             </div>
                         </div>
                     ))}

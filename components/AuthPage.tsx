@@ -17,8 +17,8 @@ const AuthPage = () => {
     try {
       console.log(`Authenticating with ${provider}...`)
       const result = await signIn(provider, {
-        redirect: false, // Important to prevent automatic redirect
-        callbackUrl: '/dashboard' // Where to redirect after login
+        redirect: false,
+        callbackUrl: '/dashboard'
       });
       console.log("Provider Auth Responses:", result);
 
