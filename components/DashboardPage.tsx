@@ -1,8 +1,9 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { FiPlus, FiTrash2, FiBarChart2, FiEdit2, FiChevronDown, FiChevronUp, FiRefreshCw } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiBarChart2, FiSearch,FiEdit2, FiChevronDown, FiChevronUp, FiRefreshCw } from 'react-icons/fi';
 
 type Poll = {
   id: string;
@@ -167,7 +168,7 @@ const DashboardPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black/50 text-gray-100 pt-24 flex items-center justify-center">
+      <div className="min-h-screen theme/50 text-gray-100 pt-24 flex items-center justify-center">
         <div className="animate-pulse flex flex-col items-center gap-2">
           <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
           <div className="text-lg font-medium">Loading Ticket Dashboard...</div>
@@ -177,13 +178,20 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black/80 text-gray-100 pt-24 pb-20">
+    <div className="min-h-screen theme text-gray-100 pt-5 pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col space-y-6">
-          {/* Header with actions */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-white">Ticket Dashboard</h1>
+             <Link href="/" className="flex items-center group">
+              <h1 className="text-2xl font-bold tracking-tighter text-green-500 group-hover:text-green-400 transition-colors duration-300">
+                POLLAR
+              </h1>
+              <span className="ml-2 text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full animate-pulse">
+                LIVE
+              </span>
+            </Link>
+            <div className='text-center'>
+              <h1 className="text-3xl font-bold text-white">Dashboard</h1>
               <p className="text-gray-400">Manage all your polling tickets</p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
@@ -206,13 +214,14 @@ const DashboardPage = () => {
 
           {/* Filters */}
           <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
-            <div className="relative flex flex-grow w-full">
+            <div className="relative flex rounded-sm flex-grow w-full theme/5 border theme-border px-4 py-2 text-white items-center gap-2">
+              <FiSearch />
               <input
                 type="text"
                 placeholder="Search tickets..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full flex-1 bg-black/5 border border-gray-800  px-4 py-2 text-white"
+                className="w-full flex-1 focus:outline-none outline-none"
               />
             </div>
             <div className="flex gap-2">
@@ -224,13 +233,13 @@ const DashboardPage = () => {
               </button>
               <button
                 onClick={() => setStatusFilter('active')}
-                className={`px-3 py-1 rounded-sm transition-all ${statusFilter === 'active' ? 'bg-white text-black' : 'bg-black/20 border border-gray-700 hover:bg-gray-700'}`}
+                className={`px-3 py-1 rounded-sm transition-all ${statusFilter === 'active' ? 'bg-white text-black' : 'theme/20 border border-gray-700 hover:bg-gray-700'}`}
               >
                 Active
               </button>
               <button
                 onClick={() => setStatusFilter('archived')}
-                className={`px-3 py-1 rounded-sm transition-all ${statusFilter === 'archived' ? 'bg-white text-black' : 'bg-black/20 border border-gray-700 hover:bg-gray-700'}`}
+                className={`px-3 py-1 rounded-sm transition-all ${statusFilter === 'archived' ? 'bg-white text-black' : 'theme/20 border border-gray-700 hover:bg-gray-700'}`}
               >
                 Archived
               </button>
@@ -239,15 +248,15 @@ const DashboardPage = () => {
 
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-black/5  border border-gray-700 rounded-sm p-4">
+            <div className="theme-darker  border theme-border rounded-sm p-4">
               <h3 className="text-sm text-gray-400">Total Tickets</h3>
               <p className="text-2xl font-bold text-white">{tickets.length}</p>
             </div>
-            <div className="bg-black/5 border border-gray-700 rounded-sm p-4">
+            <div className="theme-darker border theme-border rounded-sm p-4">
               <h3 className="text-sm text-gray-400">Active Tickets</h3>
               <p className="text-2xl font-bold text-indigo-400">{tickets.filter(t => t.status === 'active').length}</p>
             </div>
-            <div className="bg-black/5 border border-gray-700 rounded-sm p-4">
+            <div className="theme-darker border theme-border rounded-sm p-4">
               <h3 className="text-sm text-gray-400">Total Votes</h3>
               <p className="text-2xl font-bold text-white">{tickets.reduce((sum, ticket) => sum + calculateTotalVotes(ticket), 0)}</p>
             </div>
@@ -256,7 +265,7 @@ const DashboardPage = () => {
           {/* Tickets List */}
           <div className="space-y-4">
             {filteredTickets.length === 0 ? (
-              <div className="bg-black/50 border border-gray-700 rounded-sm p-8 text-center">
+              <div className="theme/50 border theme-border rounded-sm p-8 text-center">
                 <p className="text-xl mb-4 text-gray-300">No tickets found</p>
                 <button
                   onClick={createNewTicket}
@@ -268,9 +277,9 @@ const DashboardPage = () => {
               </div>
             ) : (
               filteredTickets.map(ticket => (
-                <div key={ticket.id} className="bg-black border border-gray-700 rounded-sm overflow-hidden hover:border-gray-600 transition-colors duration-200">
+                <div key={ticket.id} className="theme border theme-border rounded-sm overflow-hidden hover:border-gray-600 transition-colors duration-200">
                   <div 
-                    className={`p-4 cursor-pointer flex justify-between items-center ${ticket.status === 'archived' ? 'bg-black/50' : 'bg-black'}`}
+                    className={`p-4 cursor-pointer flex justify-between items-center ${ticket.status === 'archived' ? 'theme/50' : 'theme'}`}
                     onClick={() => toggleTicketExpansion(ticket.id)}
                   >
                     <div className="flex-grow">
@@ -296,10 +305,10 @@ const DashboardPage = () => {
                   </div>
 
                   {expandedTickets[ticket.id] && (
-                    <div className="border-t border-gray-700 bg-black">
+                    <div className="border-t theme-border theme">
                       <div className="p-4 space-y-4">
                         {ticket.polls.map(poll => (
-                          <div key={poll.id} className="bg-black/50 border border-gray-700 rounded-sm p-4">
+                          <div key={poll.id} className="theme-darker border theme-border rounded-sm p-4">
                             <div className="flex justify-between items-start">
                               <div>
                                 <h3 className="font-medium text-white">{poll.question}</h3>

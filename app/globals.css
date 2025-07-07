@@ -19,23 +19,6 @@
   }
 }
 
-@keyframes gradientMove1 {
-                    0%, 100% { transform: translate(0, 0) rotate(0deg); }
-                    50% { transform: translate(20px, 20px) rotate(5deg); }
-                }
-                
-                @keyframes gradientMove2 {
-                    0%, 100% { transform: translate(0, 0) rotate(0deg); }
-                    50% { transform: translate(-20px, -20px) rotate(-5deg); }
-                }
-                
-                .animate-gradient-move-1 {
-                    animation: gradientMove1 15s ease-in-out infinite;
-                }
-                .animate-gradient-move-2 {
-                    animation: gradientMove2 15s ease-in-out infinite;
-                }
-
 body {
   background: var(--background);
   color: var(--foreground);
@@ -43,5 +26,13 @@ body {
 }
 
 .theme {
-  background: #0e0e0e;
+  background: #070707;
+}
+
+.theme-darker {
+  background: #000000;
+}
+
+.theme-border {
+  border-color: #202020;
 }

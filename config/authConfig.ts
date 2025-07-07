@@ -3,7 +3,7 @@ import Google from "next-auth/providers/google";
 import GitHub from "next-auth/providers/github";
 import prisma from "@/lib/prisma";
 
-export const authConfig = {
+export const authConfig: NextAuthOptions = {
   providers: [
     Google({
       clientId: process.env.GOOGLE_ID as string,
@@ -16,82 +16,69 @@ export const authConfig = {
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
+      if (!user.email) return false;
+
       try {
-        if (!user.email) return false;
-
-        const existingUser = await prisma.user.findUnique({
+        await prisma.user.upsert({
           where: { email: user.email },
-          include: { providers: true } // Include related data if needed
-        });
-
-        const providerName = account?.provider || "unknown";
-
-        if (existingUser) {
-          // Update user if needed
-          await prisma.user.update({
-            where: { id: existingUser.id },
-            data: {
-              name: user.name || existingUser.name,
-              avatar_url: user.image || existingUser.avatar_url
-            }
-          });
-
-          // Add provider if missing
-          if (!existingUser.providers.some(p => p.name === providerName)) {
-            await prisma.provider.create({
-              data: { name: providerName, userId: existingUser.id },
-            });
+          update: {
+            name: user.name || undefined,
+            avatar_url: user.image || profile?.image || undefined,
+          },
+          create: {
+            email: user.email,
+            name: user.name || profile?.name || "",
+            avatar_url: user.image || profile?.image || "",
+            password: ""
           }
-        } else {
-          // Create new user with additional fields
-          await prisma.user.create({
-            data: {
-              email: user.email,
-              name: user.name || profile?.name || "",
-              avatar_url: user.image || profile?.image || "",
-              password: ''
-            },
-          });
-        }
-
+        });
         return true;
       } catch (error) {
-        console.error("Authentication error:", error);
+        console.error("SignIn error:", error);
         return false;
       }
     },
-    async session({ session, token }) {
-      if (token.sub) {
-        // Fetch fresh user data from database
-        const user = await prisma.user.findUnique({
-          where: { id: token.sub },
+    async jwt({ token, user, account, profile }) {
+      if (user?.email) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: user.email },
           select: {
             id: true,
             name: true,
             email: true,
-            avatar_url: true,
-            password: false
+            avatar_url: true
           }
         });
-
-        if (user) {
-          session.user = {
-            ...session.user,
-            ...user,
-            image: user.avatar_url
+        
+        if (dbUser) {
+          token = {
+            ...token,
+            ...dbUser,
+            picture: dbUser.avatar_url
           };
         }
       }
-      return session;
-    },
-    async jwt({ token, user }) {
-      if (user) {
-        token.sub = user.id;
-      }
       return token;
+    },
+    async session({ session, token }) {
+      console.log("Token:", token);
+      
+      (session.user as any) = {
+        ...session.user,
+        id: token.id,
+        name: token.name as string,
+        email: token.email as string,
+        image: token.picture as string
+      };
+      return session;
     }
   },
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-} satisfies NextAuthOptions;
+  secret: process.env.NEXTAUTH_SECRET,
+  pages: {
+    signIn: '/auth/signin',
+  }
+};

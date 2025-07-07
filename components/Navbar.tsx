@@ -12,8 +12,14 @@ const Navbar = () => {
   const { data: session, status } = useSession()
   const profileRef = useRef<HTMLDivElement>(null)
 
+
+  useEffect(() => {
+    console.log(session, status);
+    
+  }, [session])
+
   const navLinks = [
-    { name: 'Tickets', href: '/dashboard' },
+    { name: 'Dashboard', href: '/dashboard' },
     { name: 'Features', href: '/features' },
     { name: 'Pricing', href: '/pricing' },
   ]
