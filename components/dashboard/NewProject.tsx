@@ -2,21 +2,19 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-
 type Poll = {
   id: string;
   question: string;
   options: string[];
-  isPublic: boolean;
-  duration: number; // hours
+  duration: number;
   maxVotes: number | null;
 }
 
 type Project = {
   id: string;
+  owner: string;
   title: string;
   description: string;
-  isPublic: boolean;
   polls: Poll[];
 }
 
@@ -25,12 +23,12 @@ const CreateProjectPage = () => {
   const [activePollIndex, setActivePollIndex] = useState<number | null>(null)
   const [project, setProject] = useState<Project>({
     id: Date.now().toString(),
+    owner: '',
     title: '',
     description: '',
-    isPublic: true,
     polls: []
   })
-
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [currentPoll, setCurrentPoll] = useState<Poll | null>(null)
 
   // Poll management functions
@@ -67,7 +65,6 @@ const CreateProjectPage = () => {
       id: Date.now().toString(),
       question: '',
       options: ['', ''],
-      isPublic: true,
       duration: 24,
       maxVotes: null
     })
@@ -81,17 +78,15 @@ const CreateProjectPage = () => {
     setProject({ ...project, polls: newPolls })
   }
 
-  // Validation functions
   const validatePoll = () => {
-    return currentPoll?.question.trim() !== '' && 
-           currentPoll?.options.filter(o => o.trim() !== '').length >= 2
+    return currentPoll?.question.trim() !== '' &&
+      currentPoll?.options.filter(o => o.trim() !== '').length! >= 2
   }
 
   const validateProject = () => {
     return project.title.trim() !== '' && project.polls.length > 0
   }
 
-  // Action handlers
   const saveProjectDetails = () => {
     if (project.title.trim() === '') return
     setStep('polls')
@@ -99,43 +94,40 @@ const CreateProjectPage = () => {
 
   const savePoll = () => {
     if (!currentPoll || !validatePoll()) return
-    
+
     const updatedPolls = [...project.polls]
     if (activePollIndex !== null) {
       updatedPolls[activePollIndex] = currentPoll
     } else {
       updatedPolls.push(currentPoll)
     }
-    
+
     setProject({
       ...project,
       polls: updatedPolls
     })
-    
+
     setCurrentPoll(null)
     setStep('polls')
   }
 
   const handlePublish = () => {
-    // Submit logic here
     console.log('Project published:', project)
     setStep('publish')
   }
 
   return (
-    <div className="min-h-screen bg-black text-white pt-14">
+    <div className="min-h-screen bg-black text-white flex">
       <main className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Progress Steps */}
         <div className="flex justify-between items-center mb-12 relative">
-          {/* Progress line */}
           <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-white/10 -z-10"></div>
-          <div 
+          <div
             className="absolute top-1/2 left-0 h-0.5 bg-white transition-all duration-300 -z-10"
-            style={{ 
-              width: step === 'project' ? '0%' : step === 'polls' ? '50%' : '100%' 
+            style={{
+              width: step === 'project' ? '0%' : step === 'polls' ? '50%' : '100%'
             }}
           ></div>
-          
+
           {['project', 'polls', 'publish'].map((stepName, index) => (
             <div key={stepName} className="flex flex-col items-center">
               <button
@@ -143,10 +135,9 @@ const CreateProjectPage = () => {
                   if (stepName === 'project') setStep('project')
                   if (stepName === 'polls' && step !== 'project') setStep('polls')
                 }}
-                className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  step === stepName ? 'bg-white text-black' : 
+                className={`w-10 h-10 rounded-full flex items-center justify-center ${step === stepName ? 'bg-white text-black' :
                   (step === 'publish' && index < 2) || (step === 'polls' && index < 1) ? 'bg-white/20' : 'bg-white/10'
-                } transition-colors`}
+                  } transition-colors`}
                 disabled={
                   (stepName === 'polls' && step === 'project') ||
                   (stepName === 'publish' && step !== 'publish')
@@ -154,23 +145,30 @@ const CreateProjectPage = () => {
               >
                 {index + 1}
               </button>
-              <span className={`mt-2 text-sm ${
-                step === stepName || 
-                (step === 'publish' && index < 2) || 
+              <span className={`mt-2 text-sm ${step === stepName ||
+                (step === 'publish' && index < 2) ||
                 (step === 'polls' && index < 1) ? 'text-white' : 'text-white/40'
-              }`}>
+                }`}>
                 {stepName === 'project' ? 'Project' : stepName === 'polls' ? 'Polls' : 'Publish'}
               </span>
             </div>
           ))}
         </div>
-
-        {/* Step 1: Project Setup */}
         {step === 'project' && (
           <div className="space-y-8">
             <h2 className="text-2xl font-bold">Create New Project</h2>
-            
-            <div className="space-y-6">
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="block text-lg font-medium">Project Owner*</label>
+                <input
+                  type="text"
+                  value={project.owner}
+                  onChange={(e) => setProject({ ...project, owner: e.target.value })}
+                  placeholder="Project owner name"
+                  className="w-full px-4 py-3 bg-black border border-white/20 rounded-md focus:outline-none focus:ring-1 focus:ring-white/50"
+                />
+              </div>
               <div className="space-y-2">
                 <label className="block text-lg font-medium">Project Title*</label>
                 <input
@@ -182,7 +180,7 @@ const CreateProjectPage = () => {
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <label className="block text-lg font-medium">Description (optional)</label>
                 <textarea
                   value={project.description}
@@ -192,52 +190,30 @@ const CreateProjectPage = () => {
                   className="w-full px-4 py-3 bg-black border border-white/20 rounded-md focus:outline-none focus:ring-1 focus:ring-white/50"
                 />
               </div>
-
-              <div className="space-y-2">
-                <label className="block">Visibility</label>
-                <div className="flex space-x-4">
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      checked={project.isPublic}
-                      onChange={() => setProject({ ...project, isPublic: true })}
-                      className="h-4 w-4 border-white/20 rounded-full bg-black focus:ring-white/50"
-                    />
-                    <span>Public</span>
-                  </label>
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      checked={!project.isPublic}
-                      onChange={() => setProject({ ...project, isPublic: false })}
-                      className="h-4 w-4 border-white/20 rounded-full bg-black focus:ring-white/50"
-                    />
-                    <span>Private</span>
-                  </label>
-                </div>
-              </div>
             </div>
 
-            <div className="flex justify-end pt-6">
+            <div className="flex justify-between pt-2">
+              <Link
+                href={'/dashboard'}
+                className={`px-6 py-3 rounded-md font-medium cursor-pointer theme-border border-1 transition-colors`}
+              >
+                Cancel
+              </Link>
               <button
                 type="button"
                 onClick={saveProjectDetails}
                 disabled={project.title.trim() === ''}
-                className={`px-6 py-3 rounded-md font-medium ${
-                  project.title.trim() !== '' ? 'bg-white text-black hover:bg-white/90' : 'bg-white/10 text-white/40 cursor-not-allowed'
-                } transition-colors`}
+                className={`px-6 py-3 rounded-md font-medium ${project.title.trim() !== '' ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-white/10 text-white/40 cursor-not-allowed'
+                  } transition-colors`}
               >
                 Continue to Polls
               </button>
             </div>
           </div>
         )}
-
-        {/* Step 2: Polls Management */}
         {step === 'polls' && (
           <div className="space-y-8">
             {currentPoll ? (
-              // Poll creation/edit form
               <form className="space-y-6">
                 <div className="flex justify-between items-center">
                   <h2 className="text-xl font-bold">
@@ -271,7 +247,7 @@ const CreateProjectPage = () => {
                     <label className="block text-lg font-medium">Options*</label>
                     <span className="text-sm text-white/60">{currentPoll.options.length}/6</span>
                   </div>
-                  
+
                   {currentPoll.options.map((option, index) => (
                     <div key={index} className="flex items-center space-x-2">
                       <div className="flex-1 relative">
@@ -331,9 +307,9 @@ const CreateProjectPage = () => {
                     <input
                       type="number"
                       value={currentPoll.maxVotes || ''}
-                      onChange={(e) => setCurrentPoll({ 
-                        ...currentPoll, 
-                        maxVotes: e.target.value ? Number(e.target.value) : null 
+                      onChange={(e) => setCurrentPoll({
+                        ...currentPoll,
+                        maxVotes: e.target.value ? Number(e.target.value) : null
                       })}
                       placeholder="No limit"
                       className="w-full px-4 py-2 bg-black border border-white/20 rounded-md focus:outline-none focus:ring-1 focus:ring-white/50"
@@ -356,9 +332,8 @@ const CreateProjectPage = () => {
                     type="button"
                     onClick={savePoll}
                     disabled={!validatePoll()}
-                    className={`px-6 py-3 rounded-md font-medium ${
-                      validatePoll() ? 'bg-white text-black hover:bg-white/90' : 'bg-white/10 text-white/40 cursor-not-allowed'
-                    } transition-colors`}
+                    className={`px-6 py-3 rounded-md font-medium ${validatePoll() ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-white/10 text-white/40 cursor-not-allowed'
+                      } transition-colors`}
                   >
                     {activePollIndex !== null ? 'Update Poll' : 'Add Poll'}
                   </button>
@@ -444,9 +419,8 @@ const CreateProjectPage = () => {
                     type="button"
                     onClick={() => validateProject() && setStep('publish')}
                     disabled={!validateProject()}
-                    className={`px-6 py-3 rounded-md font-medium ${
-                      validateProject() ? 'bg-white text-black hover:bg-white/90' : 'bg-white/10 text-white/40 cursor-not-allowed'
-                    } transition-colors`}
+                    className={`px-6 py-3 rounded-md font-medium ${validateProject() ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-white/10 text-white/40 cursor-not-allowed'
+                      } transition-colors`}
                   >
                     Continue to Publish
                   </button>
@@ -455,8 +429,45 @@ const CreateProjectPage = () => {
             )}
           </div>
         )}
+        {step === 'publish' && (
+          <div className="text-center py-12">
+            <div className="mx-auto w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mb-6">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold mb-4">Project Published!</h2>
+            <p className="text-white/80 mb-8 max-w-md mx-auto">
+              Your project "{project.title}" is now live with {project.polls.length} poll{project.polls.length !== 1 ? 's' : ''}.
+            </p>
 
-        {/* Step 3: Publish Project */}
+            <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
+              <button className="px-6 py-3 bg-white text-black rounded-md font-medium hover:bg-white/90 transition-colors">
+                Copy Project Link
+              </button>
+              <button className="px-6 py-3 border border-white/20 rounded-md hover:bg-white/10 transition-colors">
+                View Project
+              </button>
+            </div>
+
+            <Link
+              href="/dashboard/projects/new"
+              className="text-white/60 hover:text-white underline underline-offset-4"
+              onClick={() => {
+                setStep('project')
+                setProject({
+                  id: Date.now().toString(),
+                  owner: '',
+                  title: '',
+                  description: '',
+                  polls: []
+                })
+              }}
+            >
+              Create another project
+            </Link>
+          </div>
+        )}
         {step === 'publish' && (
           <div className="space-y-8">
             <div className="space-y-4">
@@ -467,7 +478,7 @@ const CreateProjectPage = () => {
                   <p className="text-white/80 mb-4">{project.description}</p>
                 )}
                 <p className="text-sm text-white/60">
-                  {project.polls.length} poll{project.polls.length !== 1 ? 's' : ''} • {project.isPublic ? 'Public' : 'Private'}
+                  {project.polls.length} poll{project.polls.length !== 1 ? 's' : ''} • {project.owner}
                 </p>
               </div>
             </div>
@@ -502,55 +513,8 @@ const CreateProjectPage = () => {
               >
                 Back to Polls
               </button>
-              <button
-                type="button"
-                onClick={handlePublish}
-                className="px-6 py-3 bg-white text-black rounded-md font-medium hover:bg-white/90 transition-colors"
-              >
-                Publish Project
-              </button>
-            </div>
-          </div>
-        )}
 
-        {/* Confirmation Screen */}
-        {step === 'publish' && (
-          <div className="text-center py-12">
-            <div className="mx-auto w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mb-6">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
             </div>
-            <h2 className="text-2xl font-bold mb-4">Project Published!</h2>
-            <p className="text-white/80 mb-8 max-w-md mx-auto">
-              Your project "{project.title}" is now live with {project.polls.length} poll{project.polls.length !== 1 ? 's' : ''}.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
-              <button className="px-6 py-3 bg-white text-black rounded-md font-medium hover:bg-white/90 transition-colors">
-                Copy Project Link
-              </button>
-              <button className="px-6 py-3 border border-white/20 rounded-md hover:bg-white/10 transition-colors">
-                View Project
-              </button>
-            </div>
-            
-            <Link 
-              href="/create" 
-              className="text-white/60 hover:text-white underline underline-offset-4"
-              onClick={() => {
-                setStep('project')
-                setProject({
-                  id: Date.now().toString(),
-                  title: '',
-                  description: '',
-                  isPublic: true,
-                  polls: []
-                })
-              }}
-            >
-              Create another project
-            </Link>
           </div>
         )}
       </main>
