@@ -23,12 +23,12 @@ export const authConfig: NextAuthOptions = {
           where: { email: user.email },
           update: {
             name: user.name || undefined,
-            avatar_url: user.image || profile?.image || undefined,
+            avatarUrl: user.image || profile?.image || undefined,
           },
           create: {
             email: user.email,
             name: user.name || profile?.name || "",
-            avatar_url: user.image || profile?.image || "",
+            avatarUrl: user.image || profile?.image || "",
             password: ""
           }
         });
@@ -46,7 +46,7 @@ export const authConfig: NextAuthOptions = {
             id: true,
             name: true,
             email: true,
-            avatar_url: true
+            avatarUrl: true
           }
         });
         
@@ -54,7 +54,7 @@ export const authConfig: NextAuthOptions = {
           token = {
             ...token,
             ...dbUser,
-            picture: dbUser.avatar_url
+            picture: dbUser.avatarUrl
           };
         }
       }
