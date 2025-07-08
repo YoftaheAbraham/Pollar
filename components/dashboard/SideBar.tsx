@@ -2,38 +2,60 @@
 import Link from 'next/link'
 import React, { useState } from 'react'
 import { FiChevronLeft, FiHome, FiPieChart, FiSettings, FiUser, FiUsers, FiX } from 'react-icons/fi'
+import { useSession } from 'next-auth/react'
+import Image from 'next/image'
 
 type UserProfile = {
     name: string;
     email: string;
-    avatar: string;
-    role: string;
+    image?: string;
+    role?: string;
 };
 
-const SideBar = () => {
+const SideBar = ({ mobileSidebarOpen, setMobileSidebarOpen }: { mobileSidebarOpen: boolean; setMobileSidebarOpen: React.Dispatch<React.SetStateAction<boolean>> }) => {
     const [sidebarOpen, setSidebarOpen] = useState(true);
-    const [userProfile, setUserProfile] = useState<UserProfile>({
-        name: 'Alex Johnson',
-        email: 'alex.johnson@example.com',
-        avatar: '',
-        role: 'Project Administrator'
-    });
-    const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+    const { data: session } = useSession();
+
+    // Merge session user data with default values
+    const userProfile: UserProfile = {
+        name: session?.user?.name || 'Guest',
+        email: session?.user?.email || '',
+        image: session?.user?.image as string,
+        role: 'Member' // Default role, you might want to get this from session too
+    };
+
+    const navItems = [
+        { href: "/dashboard", icon: <FiHome size={20} />, label: "Dashboard" },
+        { href: "/Projects", icon: <FiPieChart size={20} />, label: "All Projects" },
+        { href: "/templates", icon: <FiSettings size={20} />, label: "Templates" },
+        { href: "/respondents", icon: <FiUsers size={20} />, label: "Respondents" },
+    ];
 
     return (
         <>
+            {/* Desktop Sidebar */}
             <div className={`hidden md:flex flex-col ${sidebarOpen ? 'w-64' : 'w-20'} theme transition-all duration-300 border-r theme-border`}>
                 <div className={`p-4 border-b theme-border flex ${sidebarOpen ? 'flex-row items-start' : 'flex-col items-center'} gap-3`}>
                     <div className="relative">
-                        <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center">
-                            <FiUser className="text-white" size={20} />
-                        </div>
+                        {userProfile.image ? (
+                            <img
+                                src={userProfile.image}
+                                alt="User avatar"
+                                width={40}
+                                height={40}
+                                className="rounded-full"
+                            />
+                        ) : (
+                            <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center">
+                                <FiUser className="text-white" size={20} />
+                            </div>
+                        )}
                         <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 theme-border"></span>
                     </div>
                     {sidebarOpen && (
                         <div className="flex-1">
-                            <h3 className="font-medium text-white">{userProfile.name}</h3>
-                            <p className="text-xs text-gray-400">{userProfile.role}</p>
+                            <h3 className="font-medium text-white truncate">{userProfile.name}</h3>
+                            <p className="text-xs text-gray-400 truncate">{userProfile.email}</p>
                             <button className="mt-1 text-xs text-indigo-400 hover:text-indigo-300">
                                 View Profile
                             </button>
@@ -44,37 +66,24 @@ const SideBar = () => {
                 {/* Navigation */}
                 <nav className="flex-1 overflow-y-auto p-2">
                     <ul className="space-y-1">
-                        <li>
-                            <Link href="/dashboard" className="flex items-center gap-3 p-3 rounded-md bg-[#0e0e0e] text-white">
-                                <FiHome size={20} />
-                                <span>Dashboard</span>
-                            </Link>
-                        </li>
-                        <li>
-                            <Link href="/Projects" className="flex items-center gap-3 p-3 rounded-md hover:bg-[#0e0e0e] text-white">
-                                <FiPieChart size={20} />
-                                <span>All Projects</span>
-                            </Link>
-                        </li>
-                        <li>
-                            <Link href="/templates" className="flex items-center gap-3 p-3 rounded-md hover:bg-[#0e0e0e] text-white">
-                                <FiSettings size={20} />
-                                <span>Templates</span>
-                            </Link>
-                        </li>
-                        <li>
-                            <Link href="/respondents" className="flex items-center gap-3 p-3 rounded-md hover:bg-[#0e0e0e] text-white">
-                                <FiUsers size={20} />
-                                <span>Respondents</span>
-                            </Link>
-                        </li>
+                        {navItems.map((item) => (
+                            <li key={item.href}>
+                                <Link
+                                    href={item.href}
+                                    className={`flex items-center gap-3 p-3 rounded-md hover:bg-[#0e0e0e] text-white ${sidebarOpen ? '' : 'justify-center'}`}
+                                >
+                                    {item.icon}
+                                    {sidebarOpen && <span>{item.label}</span>}
+                                </Link>
+                            </li>
+                        ))}
                     </ul>
                 </nav>
 
                 {/* Bottom Section */}
                 <div className="p-4 border-t theme-border">
                     <button
-                        className="flex items-center gap-3 w-full p-2 rounded-md hover:bg-[#0e0e0e] text-white"
+                        className={`flex items-center gap-3 w-full p-2 rounded-md hover:bg-[#0e0e0e] text-white ${sidebarOpen ? '' : 'justify-center'}`}
                         onClick={() => setSidebarOpen(!sidebarOpen)}
                     >
                         <FiChevronLeft size={20} className={sidebarOpen ? '' : 'rotate-180'} />
@@ -82,6 +91,8 @@ const SideBar = () => {
                     </button>
                 </div>
             </div>
+
+            {/* Mobile Sidebar */}
             {mobileSidebarOpen && (
                 <div className="fixed inset-0 z-40 md:hidden">
                     <div className="fixed inset-0 theme-darker bg-opacity-75" onClick={() => setMobileSidebarOpen(false)}></div>
@@ -99,6 +110,52 @@ const SideBar = () => {
                                 <FiX size={24} />
                             </button>
                         </div>
+
+                        {/* Mobile User Profile */}
+                        <div className="p-4 border-b theme-border flex flex-row items-start gap-3">
+                            <div className="relative">
+                                {userProfile.image ? (
+                                    <img
+                                        src={userProfile.image}
+                                        alt="User avatar"
+                                        width={40}
+                                        height={40}
+                                        className="rounded-full"
+                                    />
+                                ) : (
+                                    <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center">
+                                        <FiUser className="text-white" size={20} />
+                                    </div>
+                                )}
+                                <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 theme-border"></span>
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="font-medium text-white truncate">{userProfile.name}</h3>
+                                <p className="text-xs text-gray-400 truncate">{userProfile.email}</p>
+                                <p className="text-xs text-gray-400">{userProfile.role}</p>
+                                <button className="mt-1 text-xs text-indigo-400 hover:text-indigo-300">
+                                    View Profile
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Mobile Navigation */}
+                        <nav className="flex-1 overflow-y-auto p-2">
+                            <ul className="space-y-1">
+                                {navItems.map((item) => (
+                                    <li key={item.href}>
+                                        <Link
+                                            href={item.href}
+                                            className="flex items-center gap-3 p-3 rounded-md hover:bg-[#0e0e0e] text-white"
+                                            onClick={() => setMobileSidebarOpen(false)}
+                                        >
+                                            {item.icon}
+                                            <span>{item.label}</span>
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </nav>
                     </div>
                 </div>
             )}
