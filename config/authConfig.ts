@@ -8,10 +8,16 @@ export const authConfig: NextAuthOptions = {
     Google({
       clientId: process.env.GOOGLE_ID as string,
       clientSecret: process.env.GOOGLE_SECRET as string,
+      httpOptions: {
+        timeout: 15000
+      }
     }),
     GitHub({
       clientId: process.env.GITHUB_ID as string,
       clientSecret: process.env.GITHUB_SECRET as string,
+      httpOptions: {
+        timeout: 15000
+      }
     }),
   ],
   callbacks: {
