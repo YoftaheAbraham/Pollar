@@ -2,6 +2,9 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner' 
+
 type Poll = {
   id: string;
   question: string;
@@ -19,17 +22,18 @@ type Project = {
 }
 
 const CreateProjectPage = () => {
+  const router = useRouter()
   const [step, setStep] = useState<'project' | 'polls' | 'publish'>('project')
   const [activePollIndex, setActivePollIndex] = useState<number | null>(null)
   const [project, setProject] = useState<Project>({
-    id: Date.now().toString(),
+    id: '',
     owner: '',
     title: '',
     description: '',
     polls: []
   })
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [currentPoll, setCurrentPoll] = useState<Poll | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Poll management functions
   const addOption = () => {
@@ -88,12 +92,18 @@ const CreateProjectPage = () => {
   }
 
   const saveProjectDetails = () => {
-    if (project.title.trim() === '') return
+    if (project.title.trim() === '') {
+      toast.error('Project title is required')
+      return
+    }
     setStep('polls')
   }
 
   const savePoll = () => {
-    if (!currentPoll || !validatePoll()) return
+    if (!currentPoll || !validatePoll()) {
+      toast.error('Poll question and at least 2 options are required')
+      return
+    }
 
     const updatedPolls = [...project.polls]
     if (activePollIndex !== null) {
@@ -111,9 +121,60 @@ const CreateProjectPage = () => {
     setStep('polls')
   }
 
-  const handlePublish = () => {
-    console.log('Project published:', project)
-    setStep('publish')
+  const handlePublish = async () => {
+    if (!validateProject()) {
+      toast.error('Project must have a title and at least one poll')
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const response = await fetch('/api/user/actions/create-project', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: project.title,
+          owner:project.owner,
+          description: project.description,
+          polls: project.polls.map(poll => ({
+            question: poll.question,
+            options: poll.options,
+            duration: poll.duration,
+            maxVotes: poll.maxVotes
+          }))
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error(await response.text())
+      }
+
+      const data = await response.json()
+      setProject(prev => ({
+        ...prev,
+        id: data.data.projectId
+      }))
+      setStep('publish')
+      toast.success('Project published successfully!')
+    } catch (error) {
+      console.error('Publish failed:', error)
+      toast.error('Failed to publish project. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const copyProjectLink = async () => {
+    try {
+      await navigator.clipboard.writeText(
+        `${window.location.origin}/projects/${project.id}`
+      )
+      toast.success('Project link copied to clipboard!')
+    } catch (error) {
+      toast.error('Failed to copy link')
+    }
   }
 
   return (
@@ -127,7 +188,7 @@ const CreateProjectPage = () => {
               width: step === 'project' ? '0%' : step === 'polls' ? '50%' : '100%'
             }}
           ></div>
-
+          
           {['project', 'polls', 'publish'].map((stepName, index) => (
             <div key={stepName} className="flex flex-col items-center">
               <button
@@ -135,9 +196,10 @@ const CreateProjectPage = () => {
                   if (stepName === 'project') setStep('project')
                   if (stepName === 'polls' && step !== 'project') setStep('polls')
                 }}
-                className={`w-10 h-10 rounded-full flex items-center justify-center ${step === stepName ? 'bg-white text-black' :
+                className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  step === stepName ? 'bg-white text-black' :
                   (step === 'publish' && index < 2) || (step === 'polls' && index < 1) ? 'bg-white/20' : 'bg-white/10'
-                  } transition-colors`}
+                } transition-colors`}
                 disabled={
                   (stepName === 'polls' && step === 'project') ||
                   (stepName === 'publish' && step !== 'publish')
@@ -145,15 +207,17 @@ const CreateProjectPage = () => {
               >
                 {index + 1}
               </button>
-              <span className={`mt-2 text-sm ${step === stepName ||
-                (step === 'publish' && index < 2) ||
+              <span className={`mt-2 text-sm ${
+                step === stepName || 
+                (step === 'publish' && index < 2) || 
                 (step === 'polls' && index < 1) ? 'text-white' : 'text-white/40'
-                }`}>
+              }`}>
                 {stepName === 'project' ? 'Project' : stepName === 'polls' ? 'Polls' : 'Publish'}
               </span>
             </div>
           ))}
         </div>
+
         {step === 'project' && (
           <div className="space-y-8">
             <h2 className="text-2xl font-bold">Create New Project</h2>
@@ -195,7 +259,7 @@ const CreateProjectPage = () => {
             <div className="flex justify-between pt-2">
               <Link
                 href={'/dashboard'}
-                className={`px-6 py-3 rounded-md font-medium cursor-pointer theme-border border-1 transition-colors`}
+                className="px-6 py-3 border border-white/20 rounded-md hover:bg-white/10 transition-colors"
               >
                 Cancel
               </Link>
@@ -203,8 +267,9 @@ const CreateProjectPage = () => {
                 type="button"
                 onClick={saveProjectDetails}
                 disabled={project.title.trim() === ''}
-                className={`px-6 py-3 rounded-md font-medium ${project.title.trim() !== '' ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-white/10 text-white/40 cursor-not-allowed'
-                  } transition-colors`}
+                className={`px-6 py-3 rounded-md font-medium ${
+                  project.title.trim() !== '' ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-white/10 text-white/40 cursor-not-allowed'
+                } transition-colors`}
               >
                 Continue to Polls
               </button>
@@ -214,7 +279,7 @@ const CreateProjectPage = () => {
         {step === 'polls' && (
           <div className="space-y-8">
             {currentPoll ? (
-              <form className="space-y-6">
+              <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
                 <div className="flex justify-between items-center">
                   <h2 className="text-xl font-bold">
                     {activePollIndex !== null ? `Edit Poll #${activePollIndex + 1}` : 'Add New Poll'}
@@ -285,7 +350,7 @@ const CreateProjectPage = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
                   <div className="space-y-2">
-                    <label className="block">Duration</label>
+                    <label className="block">Duration (hours)</label>
                     <select
                       value={currentPoll.duration}
                       onChange={(e) => setCurrentPoll({ ...currentPoll, duration: Number(e.target.value) })}
@@ -332,15 +397,15 @@ const CreateProjectPage = () => {
                     type="button"
                     onClick={savePoll}
                     disabled={!validatePoll()}
-                    className={`px-6 py-3 rounded-md font-medium ${validatePoll() ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-white/10 text-white/40 cursor-not-allowed'
-                      } transition-colors`}
+                    className={`px-6 py-3 rounded-md font-medium ${
+                      validatePoll() ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-white/10 text-white/40 cursor-not-allowed'
+                    } transition-colors`}
                   >
                     {activePollIndex !== null ? 'Update Poll' : 'Add Poll'}
                   </button>
                 </div>
               </form>
             ) : (
-              // Polls list view
               <div className="space-y-8">
                 <div className="space-y-4">
                   <h2 className="text-2xl font-bold">{project.title}</h2>
@@ -417,12 +482,13 @@ const CreateProjectPage = () => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => validateProject() && setStep('publish')}
-                    disabled={!validateProject()}
-                    className={`px-6 py-3 rounded-md font-medium ${validateProject() ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-white/10 text-white/40 cursor-not-allowed'
-                      } transition-colors`}
+                    onClick={handlePublish}
+                    disabled={!validateProject() || isSubmitting}
+                    className={`px-6 py-3 rounded-md font-medium ${
+                      validateProject() ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-white/10 text-white/40 cursor-not-allowed'
+                    } ${isSubmitting ? 'opacity-70' : ''} transition-colors`}
                   >
-                    Continue to Publish
+                    {isSubmitting ? 'Publishing...' : 'Publish Project'}
                   </button>
                 </div>
               </div>
@@ -442,10 +508,16 @@ const CreateProjectPage = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
-              <button className="px-6 py-3 bg-white text-black rounded-md font-medium hover:bg-white/90 transition-colors">
+              <button
+                onClick={copyProjectLink}
+                className="px-6 py-3 bg-white text-black rounded-md font-medium hover:bg-white/90 transition-colors"
+              >
                 Copy Project Link
               </button>
-              <button className="px-6 py-3 border border-white/20 rounded-md hover:bg-white/10 transition-colors">
+              <button
+                onClick={() => router.push(`/dashboard/projects/${project.id}`)}
+                className="px-6 py-3 border border-white/20 rounded-md hover:bg-white/10 transition-colors"
+              >
                 View Project
               </button>
             </div>
@@ -466,55 +538,6 @@ const CreateProjectPage = () => {
             >
               Create another project
             </Link>
-          </div>
-        )}
-        {step === 'publish' && (
-          <div className="space-y-8">
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold">Review Your Project</h2>
-              <div className="border border-white/20 rounded-lg p-6">
-                <h3 className="text-xl font-bold mb-2">{project.title}</h3>
-                {project.description && (
-                  <p className="text-white/80 mb-4">{project.description}</p>
-                )}
-                <p className="text-sm text-white/60">
-                  {project.polls.length} poll{project.polls.length !== 1 ? 's' : ''} • {project.owner}
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <h3 className="text-lg font-medium">Polls in this Project</h3>
-              <div className="space-y-4">
-                {project.polls.map((poll, index) => (
-                  <div key={poll.id} className="border border-white/20 rounded-lg p-6">
-                    <h4 className="text-lg font-medium mb-4">{poll.question || `Poll #${index + 1}`}</h4>
-                    <div className="space-y-3">
-                      {poll.options.filter(o => o.trim()).map((option, idx) => (
-                        <div key={idx} className="w-full px-4 py-2 border border-white/20 rounded-md">
-                          {option || `Option ${idx + 1}`}
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex flex-wrap gap-4 mt-4 text-sm text-white/60">
-                      <span>Duration: {poll.duration} hour{poll.duration !== 1 ? 's' : ''}</span>
-                      <span>Max votes: {poll.maxVotes || 'No limit'}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex justify-between pt-6">
-              <button
-                type="button"
-                onClick={() => setStep('polls')}
-                className="px-6 py-3 border border-white/20 rounded-md hover:bg-white/10 transition-colors"
-              >
-                Back to Polls
-              </button>
-
-            </div>
           </div>
         )}
       </main>
