@@ -23,7 +23,6 @@ const SideBar = ({ mobileSidebarOpen, setMobileSidebarOpen }: { mobileSidebarOpe
 
     const navItems = [
         { href: "/dashboard", icon: <FiHome size={20} />, label: "Dashboard" },
-        { href: "/dashboard/projects", icon: <FiFile size={20} />, label: "All Projects" },
         { href: "/dashboard/usage", icon: <FiPieChart size={20} />, label: "Usage" },
         { href: "/dashboard/settings", icon: <FiSettings size={20} />, label: "Settings" },
     ];

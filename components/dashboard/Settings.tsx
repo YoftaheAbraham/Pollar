@@ -153,7 +153,7 @@ export default function SettingsPage() {
                     </div>
                 </header>
                 <main className="flex-1 overflow-y-auto p-6 theme">
-                    <div className="max-w-4xl">
+                    <div className="w-full">
                         <h1 className="text-3xl font-bold text-white mb-8">Settings</h1>
 
                         <div className="grid gap-8">
