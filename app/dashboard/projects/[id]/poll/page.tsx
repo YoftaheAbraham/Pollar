@@ -1,9 +1,9 @@
-import CreatePollPage from '@/components/CreatePollPage'
+import AddPollPage from '@/components/dashboard/AddPoll'
 import React from 'react'
 
 const page = () => {
   return (
-    <CreatePollPage />
+    <AddPollPage />
   )
 }
 

@@ -258,15 +258,13 @@ export default function ProjectDetail() {
 
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-white">Polls ({polls.length})</h2>
-                {selectedPolls.length > 0 && (
-                  <button
-                    onClick={() => setShareModalOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
+                 <Link
+                 href={`/dashboard/projects/${projectID}/poll`}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-sm cursor-pointer transition-colors"
                   >
-                    <FiShare2 size={16} />
-                    Share {selectedPolls.length} poll{selectedPolls.length !== 1 ? 's' : ''}
-                  </button>
-                )}
+                    <FiPlus size={16} />
+                    Add Poll
+                  </Link>
               </div>
 
               {polls.length === 0 ? (
@@ -399,57 +397,6 @@ export default function ProjectDetail() {
           </div>
         </main>
       </div>
-
-      {/* Share Modal */}
-      {shareModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div 
-            ref={modalRef}
-            className="bg-theme-lighter border theme-border rounded-lg p-6 w-full max-w-md"
-          >
-            <h3 className="text-lg font-semibold text-white mb-4">
-              Share {selectedPolls.length} Poll{selectedPolls.length !== 1 ? 's' : ''}
-            </h3>
-            
-            <div className="mb-4">
-              <label className="block text-sm text-gray-400 mb-2">Share Link</label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  readOnly
-                  value={generateMultiPollLink()}
-                  className="flex-1 bg-theme-darker border theme-border rounded-lg px-3 py-2 text-white text-sm"
-                />
-                <button
-                  onClick={() => copyToClipboard(generateMultiPollLink())}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors flex items-center gap-2"
-                >
-                  {copyStatus['multi'] ? (
-                    <>
-                      <FiCheckCircle size={16} />
-                      Copied
-                    </>
-                  ) : (
-                    <>
-                      <FiCopy size={16} />
-                      Copy
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShareModalOpen(false)}
-                className="px-4 py-2 text-gray-300 hover:text-white rounded-lg transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
