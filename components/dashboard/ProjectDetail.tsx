@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { FiPlus, FiBarChart2, FiSearch, FiMenu, FiBell, FiLogOut, FiPieChart, FiUsers, FiBarChart, FiClock, FiCheckCircle } from 'react-icons/fi';
+import { useState, useEffect, useRef } from 'react';
+import { FiPlus, FiBarChart2, FiSearch, FiMenu, FiBell, FiLogOut, FiPieChart, FiUsers, FiBarChart, FiClock, FiCheckCircle, FiLink, FiCopy, FiShare2 } from 'react-icons/fi';
 import SideBar from './SideBar';
 
 interface PollOption {
@@ -49,6 +49,10 @@ export default function ProjectDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [selectedPolls, setSelectedPolls] = useState<string[]>([]);
+  const [copyStatus, setCopyStatus] = useState<{ [key: string]: boolean }>({});
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -59,7 +63,7 @@ export default function ProjectDetail() {
         setError(null);
 
         const response = await fetch(`/api/user/actions/projects/${projectID}`);
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -93,6 +97,52 @@ export default function ProjectDetail() {
     };
   }, [projectID]);
 
+  // Close modal when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        setShareModalOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const togglePollSelection = (pollId: string) => {
+    setSelectedPolls(prev =>
+      prev.includes(pollId)
+        ? prev.filter(id => id !== pollId)
+        : [...prev, pollId]
+    );
+  };
+
+  const copyToClipboard = (text: string, pollId?: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      if (pollId) {
+        setCopyStatus(prev => ({ ...prev, [pollId]: true }));
+        setTimeout(() => {
+          setCopyStatus(prev => ({ ...prev, [pollId]: false }));
+        }, 2000);
+      } else {
+        setCopyStatus({ ...copyStatus, 'multi': true });
+        setTimeout(() => {
+          setCopyStatus(prev => ({ ...prev, 'multi': false }));
+        }, 2000);
+      }
+    });
+  };
+
+  const generatePollLink = (pollId: string) => {
+    return `${window.location.origin}/poll/${pollId}`;
+  };
+
+  const generateMultiPollLink = () => {
+    return `${window.location.origin}/poll/${projectID}?polls=${selectedPolls.join(',')}`;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen theme-darker text-gray-100 flex items-center justify-center">
@@ -110,7 +160,7 @@ export default function ProjectDetail() {
         <div className="text-center p-6 bg-red-900/20 rounded-lg max-w-md">
           <h2 className="text-xl font-bold text-red-400 mb-2">Error Loading Project</h2>
           <p className="text-gray-400 mb-4">{error}</p>
-          <button 
+          <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded text-white"
           >
@@ -129,11 +179,11 @@ export default function ProjectDetail() {
   return (
     <div className="flex h-screen theme-darker text-gray-100 overflow-hidden">
       <SideBar mobileSidebarOpen={mobileSidebarOpen} setMobileSidebarOpen={setMobileSidebarOpen} />
-      
+
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="theme-lighter border-b theme-border p-4 flex items-center justify-between">
           <div className="flex items-center">
-            <button 
+            <button
               className="mr-4 text-gray-400 hover:text-white md:hidden"
               onClick={() => setMobileSidebarOpen(true)}
             >
@@ -173,26 +223,7 @@ export default function ProjectDetail() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="theme-lighter border theme-border rounded-sm p-4">
-                  <h3 className="text-sm text-gray-400">Total Polls</h3>
-                  <p className="text-2xl font-bold text-white">{project.totalPolls}</p>
-                </div>
-                <div className="theme-lighter border theme-border rounded-sm p-4">
-                  <h3 className="text-sm text-gray-400">Active Polls</h3>
-                  <p className="text-2xl font-bold text-indigo-400">{project.activePolls}</p>
-                </div>
-                <div className="theme-lighter border theme-border rounded-sm p-4">
-                  <h3 className="text-sm text-gray-400">Total Votes</h3>
-                  <p className="text-2xl font-bold text-white">{project.totalVotes}</p>
-                </div>
-                <div className="theme-lighter border theme-border rounded-sm p-4">
-                  <h3 className="text-sm text-gray-400">Unique Respondents</h3>
-                  <p className="text-2xl font-bold text-white">{project.uniqueRespondents}</p>
-                </div>
-              </div>
-
-              <div className="bg-theme-lighter border border-theme-border rounded-lg p-5">
+              <div className="bg-theme-lighter border theme-border rounded-lg p-5">
                 <h2 className="text-lg font-semibold text-white mb-3">Project Information</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -213,9 +244,29 @@ export default function ProjectDetail() {
                   </div>
                 </div>
               </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="theme-lighter border theme-border rounded-sm p-4">
+                  <h3 className="text-sm text-gray-400">Total Votes</h3>
+                  <p className="text-2xl font-bold text-white">{project.totalVotes}</p>
+                </div>
+                <div className="theme-lighter border theme-border rounded-sm p-4">
+                  <h3 className="text-sm text-gray-400">Unique Respondents</h3>
+                  <p className="text-2xl font-bold text-white">{project.uniqueRespondents}</p>
+                </div>
+              </div>
 
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-white">Polls ({polls.length})</h2>
+                {selectedPolls.length > 0 && (
+                  <button
+                    onClick={() => setShareModalOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
+                  >
+                    <FiShare2 size={16} />
+                    Share {selectedPolls.length} poll{selectedPolls.length !== 1 ? 's' : ''}
+                  </button>
+                )}
               </div>
 
               {polls.length === 0 ? (
@@ -234,8 +285,17 @@ export default function ProjectDetail() {
                   {polls.map(poll => (
                     <div
                       key={poll.id}
-                      className={`bg-theme-lighter flex flex-col border ${poll.isActive ? 'border-green-500/30 hover:border-green-500/50' : 'border-theme-border hover:border-gray-600'} rounded-lg p-5 transition-all duration-300 hover:shadow-lg`}
+                      className={`bg-theme-lighter flex flex-col border ${poll.isActive ? 'border-green-500/30 hover:border-green-500/50' : 'border-theme-border hover:border-gray-600'} rounded-lg p-5 transition-all duration-300 hover:shadow-lg relative ${selectedPolls.includes(poll.id) ? 'ring-2 ring-indigo-500' : ''}`}
+                      onClick={() => togglePollSelection(poll.id)}
                     >
+                      {selectedPolls.includes(poll.id) && (
+                        <div className="absolute -top-2 -right-2 bg-indigo-500 rounded-full p-1">
+                          <div className="w-4 h-4 flex items-center justify-center text-white text-xs">
+                            {selectedPolls.indexOf(poll.id) + 1}
+                          </div>
+                        </div>
+                      )}
+                      
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="flex items-center gap-2 mb-2">
@@ -273,26 +333,54 @@ export default function ProjectDetail() {
 
                       <div className="mt-4 space-y-3">
                         {poll.options.map(option => (
-                          <div key={option.id} className="w-full">
-                            <div className="flex justify-between text-sm mb-1">
-                              <span className="text-gray-300">{option.text}</span>
-                              <span className="text-gray-400">{option.percentage}% ({option.votes} votes)</span>
+                          <div key={option.id} className="w-full mb-4 group">
+                            <div className="flex justify-between text-sm mb-2">
+                              <span className="font-medium text-gray-100 group-hover:text-white transition-colors">
+                                {option.text}
+                              </span>
+                              <span className="text-gray-300 font-semibold">
+                                {option.percentage}% <span className="text-gray-400">({option.votes} vote{option.votes !== 1 ? 's' : ''})</span>
+                              </span>
                             </div>
-                            <div className="w-full bg-gray-700 rounded-full h-2.5">
-                              <div 
-                                className="bg-indigo-500 h-2.5 rounded-full" 
-                                style={{ width: `${option.percentage}%` }}
+                            <div className="w-full bg-gray-700/60 rounded-full h-1 overflow-hidden backdrop-blur-sm">
+                              <div
+                                className="bg-white h-full rounded-full transition-all duration-700 ease-out"
+                                style={{
+                                  width: `${option.percentage}%`,
+                                  boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)'
+                                }}
                               ></div>
                             </div>
                           </div>
                         ))}
                       </div>
 
-                      <div className="mt-4 pt-3 border-t border-theme-border flex justify-between items-center">
+                      <div className="mt-4 pt-3 border-t theme-border flex justify-between items-center">
                         <div className="text-xs text-gray-500">
                           Created {new Date(poll.createdAt).toLocaleString()}
                         </div>
                         <div className="flex gap-2">
+                          <button
+                            className="relative inline-flex items-center justify-center px-3 py-1.5 overflow-hidden font-medium text-indigo-400 rounded-lg group bg-indigo-900/20 hover:bg-gradient-to-br hover:from-indigo-900/40 hover:to-indigo-900/20"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              copyToClipboard(generatePollLink(poll.id), poll.id);
+                            }}
+                          >
+                            <span className="relative flex items-center gap-1.5">
+                              {copyStatus[poll.id] ? (
+                                <>
+                                  <FiCheckCircle size={14} />
+                                  <span className="text-xs">Copied!</span>
+                                </>
+                              ) : (
+                                <>
+                                  <FiLink size={14} className="group-hover:scale-110 transition-transform" />
+                                  <span className="text-xs">Copy Link</span>
+                                </>
+                              )}
+                            </span>
+                          </button>
                           <button
                             className="relative inline-flex items-center justify-center px-3 py-1.5 overflow-hidden font-medium text-indigo-400 rounded-lg group bg-indigo-900/20 hover:bg-gradient-to-br hover:from-indigo-900/40 hover:to-indigo-900/20"
                           >
@@ -311,6 +399,57 @@ export default function ProjectDetail() {
           </div>
         </main>
       </div>
+
+      {/* Share Modal */}
+      {shareModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div 
+            ref={modalRef}
+            className="bg-theme-lighter border theme-border rounded-lg p-6 w-full max-w-md"
+          >
+            <h3 className="text-lg font-semibold text-white mb-4">
+              Share {selectedPolls.length} Poll{selectedPolls.length !== 1 ? 's' : ''}
+            </h3>
+            
+            <div className="mb-4">
+              <label className="block text-sm text-gray-400 mb-2">Share Link</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={generateMultiPollLink()}
+                  className="flex-1 bg-theme-darker border theme-border rounded-lg px-3 py-2 text-white text-sm"
+                />
+                <button
+                  onClick={() => copyToClipboard(generateMultiPollLink())}
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors flex items-center gap-2"
+                >
+                  {copyStatus['multi'] ? (
+                    <>
+                      <FiCheckCircle size={16} />
+                      Copied
+                    </>
+                  ) : (
+                    <>
+                      <FiCopy size={16} />
+                      Copy
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShareModalOpen(false)}
+                className="px-4 py-2 text-gray-300 hover:text-white rounded-lg transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

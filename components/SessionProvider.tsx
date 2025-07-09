@@ -10,7 +10,7 @@ const SessionProviderComp = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <SessionProvider>
-      {pathname.startsWith('/dashboard') ? <>{children}</> :
+      {pathname.startsWith('/dashboard') || pathname.startsWith('/poll') ? <>{children}</> :
         <>
           <Navbar />
           {children}
