@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { FiPlus, FiBarChart2, FiSearch, FiMenu, FiBell, FiLogOut, FiPieChart, FiUsers, FiBarChart } from 'react-icons/fi';
+import { FiPlus, FiSearch, FiMenu, FiBell, FiLogOut, FiPieChart, FiUsers, FiBarChart } from 'react-icons/fi';
 import SideBar from './SideBar';
 
 interface Project {

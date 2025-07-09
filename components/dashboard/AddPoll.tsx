@@ -97,7 +97,7 @@ export default function AddPollPage() {
                 <div className="flex justify-between items-center mb-8">
                     <h1 className="text-2xl font-bold">Add New Poll</h1>
                     <Link
-                        href={`/projects/${projectID}`}
+                        href={`/dashboard/projects/${projectID}`}
                         className="text-sm text-white/60 hover:text-white"
                     >
                         Back to Project
