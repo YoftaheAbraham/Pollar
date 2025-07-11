@@ -52,7 +52,9 @@ export const authConfig: NextAuthOptions = {
             id: true,
             name: true,
             email: true,
-            avatarUrl: true
+            avatarUrl: true,
+            plan: true,
+            planExpires: true
           }
         });
         
@@ -74,7 +76,9 @@ export const authConfig: NextAuthOptions = {
         id: token.id,
         name: token.name as string,
         email: token.email as string,
-        image: token.picture as string
+        image: token.picture as string,
+        plan: token.plan,
+        planExpires: token.planExpires
       };
       return session;
     }

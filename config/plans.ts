@@ -32,8 +32,8 @@ export const PLANS: PLANS<PlanInfo> = {
     },
     PRO: {
         name: "PRO",
-        monthlyPrice: 0,
-        annualPrice: 0,
+        monthlyPrice: 7,
+        annualPrice: 5,
         features: {
             totalProjects: 10,
             pollsPerProject: 10,
@@ -44,8 +44,8 @@ export const PLANS: PLANS<PlanInfo> = {
     },
     ENTERPRISE: {
         name: "ENTERPRISE",
-        monthlyPrice: 0,
-        annualPrice: 0,
+        monthlyPrice: 30,
+        annualPrice: 25,
         features: {
             totalProjects: Infinity,
             pollsPerProject: Infinity,

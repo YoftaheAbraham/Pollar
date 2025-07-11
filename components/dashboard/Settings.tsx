@@ -2,17 +2,10 @@
 
 import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
-import { FiUser, FiMail, FiCreditCard, FiCheckCircle, FiArrowRight, FiLoader, FiXCircle, FiMenu, FiBell, FiLogOut } from 'react-icons/fi';
+import { FiUser, FiMail, FiCreditCard, FiCheckCircle, FiArrowRight, FiLoader, FiXCircle, FiMenu, FiBell, FiLogOut, FiShield, FiLock, FiDatabase } from 'react-icons/fi';
 import SideBar from './SideBar';
 import Link from 'next/link';
-
-interface Plan {
-    id: string;
-    name: string;
-    price: string;
-    features: string[];
-    recommended?: boolean;
-}
+import { PLANS } from '@/config/plans';
 
 export default function SettingsPage() {
     const { data: session, update } = useSession();
@@ -21,56 +14,15 @@ export default function SettingsPage() {
     const [isUpdating, setIsUpdating] = useState(false);
     const [updateError, setUpdateError] = useState('');
     const [updateSuccess, setUpdateSuccess] = useState('');
-    const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
     const [isProcessingPayment, setIsProcessingPayment] = useState(false);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-
-    const plans: Plan[] = [
-        {
-            id: 'basic',
-            name: 'Basic',
-            price: '$0',
-            features: [
-                '5 active projects',
-                '100 responses per month',
-                'Basic analytics',
-                'Email support'
-            ]
-        },
-        {
-            id: 'pro',
-            name: 'Professional',
-            price: '$19',
-            features: [
-                'Unlimited projects',
-                '1000 responses per month',
-                'Advanced analytics',
-                'Priority support',
-                'API access'
-            ],
-            recommended: true
-        },
-        {
-            id: 'enterprise',
-            name: 'Enterprise',
-            price: '$49',
-            features: [
-                'Unlimited projects',
-                'Unlimited responses',
-                'Advanced analytics',
-                '24/7 support',
-                'API access',
-                'Custom branding'
-            ]
-        }
-    ];
+    const currentPlan = session?.user?.plan as keyof typeof PLANS || 'FREE';
 
     useEffect(() => {
         if (session?.user) {
             setName(session.user.name || '');
             setEmail(session.user.email || '');
-            setSelectedPlan('pro'); // Default to pro plan for demo
         }
     }, [session]);
 
@@ -104,20 +56,27 @@ export default function SettingsPage() {
         }
     };
 
-    const handlePlanChange = async (planId: string) => {
+    const handlePlanChange = async (plan: keyof typeof PLANS) => {
         setIsProcessingPayment(true);
-        setSelectedPlan(planId);
 
         try {
             // Simulate payment processing
             await new Promise(resolve => setTimeout(resolve, 1500));
-            setUpdateSuccess(`Plan upgraded to ${plans.find(p => p.id === planId)?.name}!`);
+            setUpdateSuccess(`Plan upgraded to ${plan}!`);
             setTimeout(() => setUpdateSuccess(''), 3000);
         } catch (error) {
             setUpdateError('Failed to process payment. Please try again.');
             setTimeout(() => setUpdateError(''), 3000);
         } finally {
             setIsProcessingPayment(false);
+        }
+    };
+
+    const getPlanColor = (plan: string) => {
+        switch (plan) {
+            case 'ENTERPRISE': return 'purple';
+            case 'PRO': return 'blue';
+            default: return 'green';
         }
     };
 
@@ -138,8 +97,12 @@ export default function SettingsPage() {
                             <h1 className="text-xl font-bold tracking-tighter text-green-500 group-hover:text-green-400 transition-colors duration-300">
                                 POLLAR
                             </h1>
-                            <span className="ml-2 text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full animate-pulse">
-                                PRO
+                            <span className={`ml-2 text-xs px-2 py-1 rounded-full ${
+                                currentPlan === 'ENTERPRISE' ? 'bg-purple-500/20 text-purple-400' :
+                                currentPlan === 'PRO' ? 'bg-blue-500/20 text-blue-400' :
+                                'bg-green-500/20 text-green-400'
+                            }`}>
+                                {currentPlan}
                             </span>
                         </Link>
                     </div>
@@ -153,21 +116,32 @@ export default function SettingsPage() {
                     </div>
                 </header>
                 <main className="flex-1 overflow-y-auto p-6 theme">
-                    <div className="w-full">
-                        <h1 className="text-3xl font-bold text-white mb-8">Settings</h1>
+                    <div className="w-full max-w-5xl mx-auto">
+                        <h1 className="text-3xl font-bold text-white mb-8">Account Settings</h1>
 
                         <div className="grid gap-8">
                             {/* Profile Section */}
-                            <section className="bg-theme-lighter border theme-border rounded-lg p-6">
-                                <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                                    <FiUser className="text-green-400" />
-                                    Profile Information
-                                </h2>
+                            <section className="bg-theme-lighter border theme-border rounded-xl p-6">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-xl font-semibold text-white flex items-center gap-3">
+                                        <div className={`p-2 rounded-lg bg-${getPlanColor(currentPlan)}-500/10 text-${getPlanColor(currentPlan)}-400`}>
+                                            <FiUser size={20} />
+                                        </div>
+                                        Profile Information
+                                    </h2>
+                                    <span className={`px-3 py-1 rounded-full text-sm ${
+                                        currentPlan === 'ENTERPRISE' ? 'bg-purple-900/30 text-purple-400' :
+                                        currentPlan === 'PRO' ? 'bg-blue-900/30 text-blue-400' :
+                                        'bg-green-900/30 text-green-400'
+                                    }`}>
+                                        {currentPlan} Plan
+                                    </span>
+                                </div>
 
                                 <form onSubmit={handleSubmit}>
-                                    <div className="grid gap-4 mb-6">
+                                    <div className="grid md:grid-cols-2 gap-6 mb-6">
                                         <div>
-                                            <label htmlFor="name" className="block text-sm font-medium text-gray-400 mb-1">
+                                            <label htmlFor="name" className="block text-sm font-medium text-gray-400 mb-2">
                                                 Name
                                             </label>
                                             <div className="relative">
@@ -176,14 +150,14 @@ export default function SettingsPage() {
                                                     id="name"
                                                     value={name}
                                                     onChange={(e) => setName(e.target.value)}
-                                                    className="w-full bg-theme-darker border theme-border rounded-sm px-4 py-2 text-white outline-none"
+                                                    className="w-full bg-theme-darker border theme-border rounded-lg px-4 py-3 text-white outline-none focus:ring-2 focus:ring-green-500/50"
                                                     required
                                                 />
                                             </div>
                                         </div>
 
                                         <div>
-                                            <label htmlFor="email" className="block text-sm font-medium text-gray-400 mb-1">
+                                            <label htmlFor="email" className="block text-sm font-medium text-gray-400 mb-2">
                                                 Email
                                             </label>
                                             <div className="relative">
@@ -191,8 +165,8 @@ export default function SettingsPage() {
                                                     type="email"
                                                     id="email"
                                                     value={email}
-                                                    onChange={(e) => setEmail(e.target.value)}
-                                                    className="w-full bg-theme-darker border theme-border  rounded-sm px-4 py-2 text-white outline-none"
+                                                    disabled
+                                                    className="w-full text-gray-500 bg-theme-darker border theme-border rounded-lg px-4 py-3 cursor-not-allowed outline-none"
                                                     required
                                                 />
                                                 <FiMail className="absolute right-3 top-3 text-gray-500" />
@@ -204,7 +178,7 @@ export default function SettingsPage() {
                                         <button
                                             type="submit"
                                             disabled={isUpdating}
-                                            className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md flex items-center gap-2 transition-colors"
+                                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-sm flex items-center gap-2 transition-colors font-medium"
                                         >
                                             {isUpdating ? (
                                                 <>
@@ -212,9 +186,7 @@ export default function SettingsPage() {
                                                     Updating...
                                                 </>
                                             ) : (
-                                                <>
-                                                    Update Profile
-                                                </>
+                                                'Update Profile'
                                             )}
                                         </button>
 
@@ -234,100 +206,109 @@ export default function SettingsPage() {
                                     </div>
                                 </form>
                             </section>
-
-                            {/* Subscription Section */}
-                            <section className="bg-theme-lighter border theme-border  rounded-lg p-6">
-                                <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
-                                    <FiCreditCard className="text-indigo-400" />
-                                    Subscription Plan
+                            <section className="bg-theme-lighter border theme-border rounded-xl p-6">
+                                <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-3">
+                                    <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
+                                        <FiCreditCard size={20} />
+                                    </div>
+                                    Plan Upgrade
                                 </h2>
 
-                                <div className="grid md:grid-cols-3 gap-4 mb-8">
-                                    {plans.map((plan) => (
-                                        <div
-                                            key={plan.id}
-                                            className={`border theme-border  rounded-sm p-5 transition-all ${plan.recommended
-                                                ? ' bg-green-900/10'
-                                                : ' hover:border-gray-500'
-                                                } ${selectedPlan === plan.id ? 'ring-2 ring-green-500' : ''
+                                <div className="grid md:grid-cols-3 gap-6">
+                                    {(Object.keys(PLANS) as Array<keyof typeof PLANS>).map((planKey) => {
+                                        const plan = PLANS[planKey];
+                                        const isCurrentPlan = currentPlan === planKey;
+                                        const isHigherPlan = 
+                                            (currentPlan === 'FREE' && (planKey === 'PRO' || planKey === 'ENTERPRISE')) ||
+                                            (currentPlan === 'PRO' && planKey === 'ENTERPRISE');
+
+                                        return (
+                                            <div
+                                                key={planKey}
+                                                className={`border rounded-xl p-6 transition-all relative overflow-hidden ${
+                                                    isCurrentPlan 
+                                                        ? `ring-2 ring-${getPlanColor(planKey)}-500 bg-${getPlanColor(planKey)}-500/5`
+                                                        : 'theme-border hover:border-gray-500'
                                                 }`}
-                                        >
-                                            {plan.recommended && (
-                                                <div className="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full inline-block mb-3">
-                                                    Recommended
-                                                </div>
-                                            )}
-
-                                            <h3 className="text-lg font-bold text-white mb-1">{plan.name}</h3>
-                                            <p className="text-2xl font-bold text-white mb-4">{plan.price}<span className="text-sm font-normal text-gray-400">/month</span></p>
-
-                                            <ul className="space-y-2 mb-6">
-                                                {plan.features.map((feature, index) => (
-                                                    <li key={index} className="flex items-center gap-2 text-gray-300">
-                                                        <FiCheckCircle className="text-green-400" size={14} />
-                                                        <span>{feature}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-
-                                            <button
-                                                onClick={() => handlePlanChange(plan.id)}
-                                                disabled={isProcessingPayment || selectedPlan === plan.id}
-                                                className={`w-full py-2 rounded-md flex items-center justify-center gap-2 transition-colors ${selectedPlan === plan.id
-                                                    ? 'bg-green-600 text-white cursor-not-allowed'
-                                                    : plan.recommended
-                                                        ? 'bg-green-600 hover:bg-green-700 text-white'
-                                                        : 'bg-theme-darker hover:bg-gray-700 text-white border border-theme-border'
-                                                    }`}
                                             >
-                                                {isProcessingPayment && selectedPlan === plan.id ? (
-                                                    <>
-                                                        <FiLoader className="animate-spin" />
-                                                        Processing...
-                                                    </>
-                                                ) : selectedPlan === plan.id ? (
-                                                    <>
-                                                        <FiCheckCircle />
+                                                {isCurrentPlan && (
+                                                    <div className="absolute top-0 right-0 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg">
                                                         Current Plan
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        Upgrade <FiArrowRight />
-                                                    </>
+                                                    </div>
                                                 )}
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
 
-                                <div className="bg-theme-darker border theme-border rounded-sm p-4">
-                                    <h3 className="text-md font-semibold text-white mb-2">Billing Information</h3>
-                                    <p className="text-sm text-gray-400 mb-4">
-                                        Your current plan will renew automatically on <span className="text-white">January 1, 2024</span>.
-                                    </p>
-                                    <div className="flex flex-wrap gap-3">
-                                        <button className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm">
-                                            Update Payment Method
-                                        </button>
-                                        <button className="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-md text-sm border border-red-600/30">
-                                            Cancel Subscription
-                                        </button>
-                                    </div>
+                                                <h3 className="text-lg font-bold text-white mb-2">{planKey}</h3>
+                                                <p className="text-3xl font-bold mb-4">
+                                                    ${plan.monthlyPrice}
+                                                    <span className="text-sm font-normal text-gray-400 ml-1">/month</span>
+                                                </p>
+
+                                                <ul className="space-y-3 mb-6">
+                                                    {Object.entries(plan.features).map(([key, value]) => (
+                                                        <li key={key} className="flex items-start gap-3 text-gray-300">
+                                                            <FiCheckCircle className={`flex-shrink-0 mt-1 ${
+                                                                isCurrentPlan ? `text-${getPlanColor(planKey)}-400` : 'text-gray-500'
+                                                            }`} />
+                                                            <span>
+                                                                {typeof value === 'number' ? (
+                                                                    <span className="font-medium">{value.toLocaleString()}</span>
+                                                                ) : (
+                                                                    <span className="font-medium">{value}</span>
+                                                                )} {key.replace(/([A-Z])/g, ' $1').replace('total', '').trim()}
+                                                            </span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+
+                                                <button
+                                                    onClick={() => handlePlanChange(planKey)}
+                                                    disabled={isProcessingPayment || isCurrentPlan || !isHigherPlan}
+                                                    className={`w-full py-3 rounded-lg flex items-center justify-center gap-2 font-medium ${
+                                                        isCurrentPlan
+                                                            ? `bg-${getPlanColor(planKey)}-600 text-white cursor-not-allowed`
+                                                            : isHigherPlan
+                                                                ? `bg-${getPlanColor(planKey)}-600 hover:bg-${getPlanColor(planKey)}-700 text-white`
+                                                                : 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                                                    }`}
+                                                >
+                                                    {isProcessingPayment ? (
+                                                        <>
+                                                            <FiLoader className="animate-spin" />
+                                                            Processing...
+                                                        </>
+                                                    ) : isCurrentPlan ? (
+                                                        'Your Current Plan'
+                                                    ) : isHigherPlan ? (
+                                                        <>
+                                                            Upgrade to {planKey} <FiArrowRight />
+                                                        </>
+                                                    ) : (
+                                                        'Downgrade Not Allowed'
+                                                    )}
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </section>
 
                             {/* Danger Zone */}
-                            <section className="bg-red-900/10 border border-red-900/30 rounded-lg p-6">
-                                <h2 className="text-xl font-semibold text-white mb-4">Danger Zone</h2>
+                            <section className="bg-red-900/10 border border-red-900/30 rounded-xl p-6">
+                                <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-3">
+                                    <div className="p-2 rounded-lg bg-red-500/10 text-red-400">
+                                        <FiLock size={20} />
+                                    </div>
+                                    Danger Zone
+                                </h2>
                                 <div className="space-y-4">
-                                    <div className="flex flex-wrap items-center justify-between gap-4">
+                                    <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-red-900/20 rounded-lg">
                                         <div>
                                             <h3 className="font-medium text-white">Delete Account</h3>
                                             <p className="text-sm text-gray-400">
                                                 Permanently delete your account and all associated data.
                                             </p>
                                         </div>
-                                        <button className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm">
+                                        <button className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium">
                                             Delete Account
                                         </button>
                                     </div>

@@ -1,112 +1,121 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { useState } from 'react';
-import { FiMenu, FiPieChart, FiCheckCircle, FiAlertTriangle } from 'react-icons/fi';
+import { useState, useEffect } from 'react';
+import { FiMenu, FiPieChart, FiCheckCircle, FiAlertTriangle, FiActivity } from 'react-icons/fi';
 import SideBar from './SideBar';
 
-interface UsageMetric {
-  name: string;
-  used: number;
-  limit: number | string;
-  unit: string;
-}
-
-interface PlanLimits {
-  projects: number | string;
-  polls: number | string;
-  responses: number | string;
-  storage: number | string;
-}
-
-interface Plan {
-  name: string;
-  limits: PlanLimits;
-}
-
-interface PlanData {
-  free: Plan;
-  pro: Plan;
-  enterprise: Plan;
+interface UsageData {
+  currentPlan: string;
+  limits: {
+    maxProjects: number | null;
+    maxPollsPerProject: number | null;
+    maxTotalPolls: number | null;
+    maxResponses: number | null;
+    prioritySupport: boolean;
+  };
+  usage: {
+    totalProjects: number;
+    totalPolls: number;
+    totalResponses: number;
+    remainingProjects: number | null;
+    remainingPolls: number | null;
+    remainingResponses: number | null;
+  };
+  exceeded: {
+    projects: boolean;
+    polls: boolean;
+    responses: boolean;
+  };
+  isUnlimited: boolean;
 }
 
 export default function UsagePage() {
   const { data: session } = useSession();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [currentPlan] = useState<'free' | 'pro' | 'enterprise'>('free'); // Default to free plan
+  const [usageData, setUsageData] = useState<UsageData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const planLimits: PlanData = {
-    free: {
-      name: 'Free Plan',
-      limits: {
-        projects: 5,
-        polls: 20,
-        responses: 100,
-        storage: 100, // MB
+  useEffect(() => {
+    const fetchUsageData = async () => {
+      try {
+        const response = await fetch('/api/user/actions/usage');
+        if (!response.ok) {
+          throw new Error('Failed to fetch usage data');
+        }
+        const data = await response.json();
+        setUsageData(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error occurred');
+      } finally {
+        setLoading(false);
       }
-    },
-    pro: {
-      name: 'Pro Plan',
-      limits: {
-        projects: 'Unlimited',
-        polls: 100,
-        responses: 1000,
-        storage: 500, // MB
-      }
-    },
-    enterprise: {
-      name: 'Enterprise Plan',
-      limits: {
-        projects: 'Unlimited',
-        polls: 'Unlimited',
-        responses: 'Unlimited',
-        storage: 1000, // MB
-      }
+    };
+
+    if (session) {
+      fetchUsageData();
     }
-  };
+  }, [session]);
 
-  const getNumericLimit = (limit: number | string): number => {
-    return limit === 'Unlimited' ? Infinity : Number(limit);
-  };
+  if (loading) {
+    return (
+      <div className="flex h-screen theme-darker text-gray-100 overflow-hidden">
+        <div className="m-auto">Loading usage data...</div>
+      </div>
+    );
+  }
 
-  // Mock usage data - in a real app you'd fetch this from your API
-  const usageData: UsageMetric[] = [
-    {
-      name: 'Projects',
-      used: 3,
-      limit: getNumericLimit(planLimits[currentPlan].limits.projects),
-      unit: ''
-    },
-    {
-      name: 'Polls',
-      used: 12,
-      limit: getNumericLimit(planLimits[currentPlan].limits.polls),
-      unit: ''
-    },
-    {
-      name: 'Responses',
-      used: 78,
-      limit: getNumericLimit(planLimits[currentPlan].limits.responses),
-      unit: ''
-    },
-    {
-      name: 'Storage',
-      used: 32,
-      limit: getNumericLimit(planLimits[currentPlan].limits.storage),
-      unit: 'MB'
-    }
-  ];
+  if (error) {
+    return (
+      <div className="flex h-screen theme-darker text-gray-100 overflow-hidden">
+        <div className="m-auto text-red-400">Error: {error}</div>
+      </div>
+    );
+  }
 
-  const getUsagePercentage = (used: number, limit: number) => {
-    if (limit === Infinity) return 0;
+  if (!usageData) {
+    return null;
+  }
+
+  const getUsagePercentage = (used: number, limit: number | null) => {
+    if (limit === null || limit === 0) return 0;
     return Math.min(100, Math.round((used / limit) * 100));
   };
 
-  const getUsageColor = (percentage: number) => {
-    if (percentage > 90) return 'bg-red-500';
-    if (percentage > 75) return 'bg-yellow-500';
+  const getUsageColor = (percentage: number, exceeded: boolean) => {
+    if (exceeded) return 'bg-red-500';
+    if (percentage > 90) return 'bg-yellow-500';
+    if (percentage > 75) return 'bg-orange-500';
     return 'bg-green-500';
   };
+
+  const metrics = [
+    {
+      name: 'Projects',
+      used: usageData.usage.totalProjects,
+      limit: usageData.limits.maxProjects,
+      remaining: usageData.usage.remainingProjects,
+      exceeded: usageData.exceeded.projects,
+      unit: '',
+    },
+    {
+      name: 'Polls',
+      used: usageData.usage.totalPolls,
+      limit: usageData.limits.maxTotalPolls,
+      remaining: usageData.usage.remainingPolls,
+      exceeded: usageData.exceeded.polls,
+      unit: '',
+    },
+    {
+      name: 'Responses',
+      used: usageData.usage.totalResponses,
+      limit: usageData.limits.maxResponses,
+      remaining: usageData.usage.remainingResponses,
+      exceeded: usageData.exceeded.responses,
+      unit: '',
+    },
+  ];
 
   return (
     <div className="flex h-screen theme-darker text-gray-100 overflow-hidden">
@@ -127,8 +136,14 @@ export default function UsagePage() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <span className="px-3 py-1 bg-green-900/30 text-green-400 rounded-full text-sm">
-              {planLimits[currentPlan].name}
+            <span className={`px-3 py-1 rounded-full text-sm ${
+              usageData.isUnlimited 
+                ? 'bg-purple-900/30 text-purple-400' 
+                : usageData.currentPlan === 'PRO' 
+                  ? 'bg-blue-900/30 text-blue-400' 
+                  : 'bg-green-900/30 text-green-400'
+            }`}>
+              {usageData.currentPlan} {usageData.isUnlimited && ' (Unlimited)'}
             </span>
           </div>
         </header>
@@ -141,35 +156,84 @@ export default function UsagePage() {
                 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <h3 className="text-lg font-medium text-green-400 mb-3">{planLimits[currentPlan].name}</h3>
+                    <h3 className="text-lg font-medium mb-3 ${
+                      usageData.isUnlimited 
+                        ? 'text-purple-400' 
+                        : usageData.currentPlan === 'PRO' 
+                          ? 'text-blue-400' 
+                          : 'text-green-400'
+                    }">
+                      {usageData.currentPlan} Plan
+                    </h3>
                     <ul className="space-y-3">
                       <li className="flex items-center gap-2 text-gray-300">
-                        <FiCheckCircle className="text-green-400" />
+                        <FiCheckCircle className={
+                          usageData.isUnlimited 
+                            ? 'text-purple-400' 
+                            : usageData.currentPlan === 'PRO' 
+                              ? 'text-blue-400' 
+                              : 'text-green-400'
+                        } />
                         <span>
-                          Projects: {planLimits[currentPlan].limits.projects === 'Unlimited' ? 'Unlimited' : `${planLimits[currentPlan].limits.projects} active`}
+                          Projects: {usageData.isUnlimited ? (
+                            <span className="flex items-center gap-1">
+                              Unlimited <FiActivity />
+                            </span>
+                          ) : (
+                            `${usageData.limits.maxProjects} active`
+                          )}
                         </span>
                       </li>
                       <li className="flex items-center gap-2 text-gray-300">
-                        <FiCheckCircle className="text-green-400" />
+                        <FiCheckCircle className={
+                          usageData.isUnlimited 
+                            ? 'text-purple-400' 
+                            : usageData.currentPlan === 'PRO' 
+                              ? 'text-blue-400' 
+                              : 'text-green-400'
+                        } />
                         <span>
-                          Polls: {planLimits[currentPlan].limits.polls === 'Unlimited' ? 'Unlimited' : planLimits[currentPlan].limits.polls}
+                          Polls: {usageData.isUnlimited ? (
+                            <span className="flex items-center gap-1">
+                              Unlimited <FiActivity />
+                            </span>
+                          ) : (
+                            usageData.limits.maxTotalPolls
+                          )}
                         </span>
                       </li>
                       <li className="flex items-center gap-2 text-gray-300">
-                        <FiCheckCircle className="text-green-400" />
+                        <FiCheckCircle className={
+                          usageData.isUnlimited 
+                            ? 'text-purple-400' 
+                            : usageData.currentPlan === 'PRO' 
+                              ? 'text-blue-400' 
+                              : 'text-green-400'
+                        } />
                         <span>
-                          Responses: {planLimits[currentPlan].limits.responses === 'Unlimited' ? 'Unlimited' : `${planLimits[currentPlan].limits.responses}/month`}
+                          Responses: {usageData.isUnlimited ? (
+                            <span className="flex items-center gap-1">
+                              Unlimited <FiActivity />
+                            </span>
+                          ) : (
+                            `${usageData.limits.maxResponses}/month`
+                          )}
                         </span>
                       </li>
                       <li className="flex items-center gap-2 text-gray-300">
-                        <FiCheckCircle className="text-green-400" />
+                        <FiCheckCircle className={
+                          usageData.isUnlimited 
+                            ? 'text-purple-400' 
+                            : usageData.currentPlan === 'PRO' 
+                              ? 'text-blue-400' 
+                              : 'text-green-400'
+                        } />
                         <span>
-                          Storage: {planLimits[currentPlan].limits.storage}MB
+                          Priority Support: {usageData.limits.prioritySupport ? 'Yes' : 'No'}
                         </span>
                       </li>
                     </ul>
                   </div>
-                
                 </div>
               </section>
               
@@ -177,27 +241,42 @@ export default function UsagePage() {
                 <h2 className="text-xl font-semibold text-white mb-6">Your Usage</h2>
                 
                 <div className="space-y-6">
-                  {usageData.map((metric) => (
+                  {metrics.map((metric) => (
                     <div key={metric.name} className="space-y-2">
                       <div className="flex justify-between items-center">
                         <h3 className="font-medium text-white">{metric.name}</h3>
                         <span className="text-sm text-gray-400">
-                          {metric.used} / {metric.limit === Infinity ? '∞' : metric.limit} {metric.unit}
+                          {metric.used} / {metric.limit === null ? (
+                            <span className="flex items-center gap-1">
+                              ∞ <FiActivity size={12} />
+                            </span>
+                          ) : (
+                            metric.limit
+                          )} {metric.unit}
+                          {metric.remaining !== null && (
+                            <span className="ml-2">({metric.remaining} remaining)</span>
+                          )}
                         </span>
                       </div>
                       
-                      {metric.limit !== Infinity ? (
+                      {metric.limit !== null ? (
                         <>
                           <div className="w-full bg-gray-700 rounded-full h-2.5">
                             <div
-                              className={`h-2.5 rounded-full ${getUsageColor(getUsagePercentage(metric.used, parseInt(metric.limit as string)))}`}
-                              style={{ width: `${getUsagePercentage(metric.used, parseInt(metric.limit as string))}%` }}
+                              className={`h-2.5 rounded-full ${
+                                getUsageColor(getUsagePercentage(metric.used, metric.limit), metric.exceeded)
+                              }`}
+                              style={{ width: `${getUsagePercentage(metric.used, metric.limit)}%` }}
                             ></div>
                           </div>
                           <div className="flex justify-between text-xs text-gray-400">
-                            <span>{getUsagePercentage(metric.used, parseInt(metric.limit as string))}% utilized</span>
-                            {getUsagePercentage(metric.used, parseInt(metric.limit as string)) > 90 && (
+                            <span>{getUsagePercentage(metric.used, metric.limit)}% utilized</span>
+                            {metric.exceeded ? (
                               <span className="text-red-400 flex items-center gap-1">
+                                <FiAlertTriangle size={12} /> Limit exceeded
+                              </span>
+                            ) : getUsagePercentage(metric.used, metric.limit) > 90 && (
+                              <span className="text-yellow-400 flex items-center gap-1">
                                 <FiAlertTriangle size={12} /> Near limit
                               </span>
                             )}
@@ -205,7 +284,14 @@ export default function UsagePage() {
                         </>
                       ) : (
                         <div className="text-sm text-gray-400 flex items-center gap-1">
-                          <FiCheckCircle className="text-green-400" /> Unlimited usage
+                          <FiCheckCircle className={
+                            usageData.isUnlimited 
+                              ? 'text-purple-400' 
+                              : usageData.currentPlan === 'PRO' 
+                                ? 'text-blue-400' 
+                                : 'text-green-400'
+                          } /> 
+                          Unlimited usage
                         </div>
                       )}
                     </div>
