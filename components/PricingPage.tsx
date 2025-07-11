@@ -1,64 +1,10 @@
 'use client'
+import { pricingTiers } from '@/config/plans'
 import React, { useState } from 'react'
-
 
 const PricingPage = () => {
     const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual')
     const [hoveredTier, setHoveredTier] = useState<string | null>(null)
-
-    const pricingTiers = [
-        {
-            name: 'Starter',
-            description: 'For individuals and casual users',
-            monthlyPrice: 0,
-            annualPrice: 0,
-            features: [
-                '5 active polls at a time',
-                'Basic analytics',
-                '200 votes per poll',
-                'Public polls only',
-                'Standard support'
-            ],
-            cta: 'Get Started',
-            popular: false
-        },
-        {
-            name: 'Pro',
-            description: 'For content creators and professionals',
-            monthlyPrice: 7,
-            annualPrice: 5,
-            features: [
-                '20 active polls',
-                'Advanced analytics',
-                '2,000 votes per poll',
-                'Private polls',
-                'Custom branding',
-                'Priority support',
-                'API access'
-            ],
-            cta: 'Go Pro',
-            popular: true
-        },
-        {
-            name: 'Enterprise',
-            description: 'For teams and businesses',
-            monthlyPrice: 25,
-            annualPrice: 20,
-            features: [
-                'Everything in Pro',
-                '100 active polls',
-                'Team collaboration',
-                '20,000 votes per poll',
-                'White-label options',
-                'Dedicated account manager',
-                'SLA guarantees',
-                'Custom integrations',
-                'IP - Tracking'
-            ],
-            cta: 'Contact Us',
-            popular: false
-        }
-    ]
 
     return (
         <div className="min-h-screen bg-black text-white pt-10">

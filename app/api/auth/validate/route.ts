@@ -1,4 +1,3 @@
-// app/api/auth/validate/route.ts
 import { authConfig } from "@/config/authConfig";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";

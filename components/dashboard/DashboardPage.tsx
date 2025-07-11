@@ -158,9 +158,6 @@ export default function DashboardPage() {
               <h1 className="text-xl font-bold tracking-tighter text-green-500 group-hover:text-green-400 transition-colors duration-300">
                 POLLAR
               </h1>
-              <span className="ml-2 text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full animate-pulse">
-                PRO
-              </span>
             </Link>
           </div>
           <div className="flex items-center gap-4">
@@ -184,7 +181,7 @@ export default function DashboardPage() {
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={createNewProject}
-                    className="flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-sm hover:bg-green-700 transition-all duration-200 shadow-sm"
+                    className="flex cursor-pointer items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-sm hover:bg-green-700 transition-all duration-200 shadow-sm"
                   >
                     <FiPlus />
                     New Project
@@ -246,11 +243,11 @@ export default function DashboardPage() {
 
               <div className="grid gap-4">
                 {filteredProjects.length === 0 ? (
-                  <div className="bg-theme-lighter border border-theme-border rounded-lg p-8 text-center">
-                    <p className="text-xl mb-4 text-gray-300">No projects found</p>
+                  <div className="theme-lighter border theme-border  rounded-lg p-8 text-center">
+                    <p className="text-sm mb-4 text-gray-500">No projects found</p>
                     <button
                       onClick={createNewProject}
-                      className="bg-green-600 text-white px-6 py-3 rounded-lg inline-flex items-center gap-2 hover:bg-green-700 transition-all duration-300 hover:scale-[1.02]"
+                      className="bg-green-600 cursor-pointer text-white px-4 py-2 rounded-sm inline-flex items-center gap-2 hover:bg-green-700 transition-all duration-300"
                     >
                       <FiPlus />
                       Create First Project
