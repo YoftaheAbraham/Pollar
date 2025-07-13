@@ -17,7 +17,7 @@ export default function SettingsPage() {
     const [isProcessingPayment, setIsProcessingPayment] = useState(false);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-    const currentPlan = session?.user?.plan as keyof typeof PLANS || 'FREE';
+    const currentPlan = (session?.user as any).plan as keyof typeof PLANS || 'FREE';
 
     useEffect(() => {
         if (session?.user) {
