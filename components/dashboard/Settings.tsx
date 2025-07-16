@@ -16,7 +16,7 @@ export default function SettingsPage() {
     const [updateSuccess, setUpdateSuccess] = useState('');
     const [isProcessingPayment, setIsProcessingPayment] = useState(false);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-
+    // to get commits contribtion
     const currentPlan = (session?.user as any).plan as keyof typeof PLANS || 'FREE';
 
     useEffect(() => {
