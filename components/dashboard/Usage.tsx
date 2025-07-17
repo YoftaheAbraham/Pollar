@@ -169,7 +169,7 @@ export default function UsagePage() {
                       <li className="flex items-center gap-2 text-gray-300">
                         <FiCheckCircle className={
                           usageData.isUnlimited 
-                            ? 'text-purple-400' 
+                            ? 'text-purple-500' 
                             : usageData.currentPlan === 'PRO' 
                               ? 'text-blue-400' 
                               : 'text-green-400'
